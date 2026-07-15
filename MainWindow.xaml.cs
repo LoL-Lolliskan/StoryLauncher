@@ -11,14 +11,21 @@ namespace StoryLauncher
         private bool _isVolumeSliderReady;
         private bool _updateCheckStarted;
 
-        private readonly LauncherUpdateService _launcherUpdateService;
+        private readonly LauncherUpdateService
+            _launcherUpdateService;
 
         public MainWindow()
         {
             InitializeComponent();
 
+            /*
+             * Сначала создаём сервис обновлений.
+             * После этого можно получать текущую версию.
+             */
             _launcherUpdateService =
                 new LauncherUpdateService();
+
+            UpdateLauncherVersionDisplay();
 
             /*
              * Проверяем обновления после открытия окна,
@@ -36,6 +43,33 @@ namespace StoryLauncher
             UpdateMusicControls();
             UpdateProfileDisplay();
             ShowHomePage();
+        }
+
+        private void UpdateLauncherVersionDisplay()
+        {
+            try
+            {
+                string currentVersion =
+                    _launcherUpdateService.CurrentVersion;
+
+                if (string.IsNullOrWhiteSpace(
+                        currentVersion) ||
+                    currentVersion == "Неизвестно")
+                {
+                    LauncherVersionText.Text =
+                        "Версия лаунчера неизвестна";
+
+                    return;
+                }
+
+                LauncherVersionText.Text =
+                    $"Версия лаунчера {currentVersion}";
+            }
+            catch
+            {
+                LauncherVersionText.Text =
+                    "Версия лаунчера неизвестна";
+            }
         }
 
         private async void MainWindow_Loaded(
@@ -208,7 +242,8 @@ namespace StoryLauncher
             if (updateSlider &&
                 VolumeSlider != null)
             {
-                VolumeSlider.Value = volume;
+                VolumeSlider.Value =
+                    volume;
             }
         }
 

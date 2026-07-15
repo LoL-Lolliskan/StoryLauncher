@@ -367,10 +367,10 @@
                     </StackPanel>
                 </Button>
 
-                <TextBlock Grid.Row="6"
-                           Text="Версия лаунчера 0.1.0"
-                           Foreground="#666B78"
-                           FontSize="12"/>
+                <TextBlock x:Name="LauncherVersionText"
+                             Text="Версия лаунчера"
+                             Foreground="#697184"
+                             FontSize="12"/>
             </Grid>
         </Border>
 
