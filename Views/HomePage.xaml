@@ -1,0 +1,140 @@
+﻿<Page x:Class="StoryLauncher.Views.HomePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d"
+      Background="Transparent"
+      Title="HomePage">
+
+    <Grid Margin="28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="180"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                CornerRadius="20"
+                Background="#191D27"
+                BorderBrush="#2B3040"
+                BorderThickness="1">
+
+            <Grid Margin="36">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="360"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="ТВОЯ ИСТОРИЯ НАЧИНАЕТСЯ ЗДЕСЬ"
+                               Foreground="#8A78FF"
+                               FontSize="14"
+                               FontWeight="Bold"/>
+
+                    <TextBlock Text="Story Modpack"
+                               Margin="0,12,0,0"
+                               Foreground="White"
+                               FontSize="46"
+                               FontWeight="Bold"/>
+
+                    <TextBlock Text="Приключения, магия, боссы и собственная атмосфера."
+                               Margin="0,14,0,0"
+                               Foreground="#A8ADBA"
+                               FontSize="17"/>
+
+                    <StackPanel Orientation="Horizontal"
+                                Margin="0,30,0,0">
+
+                        <Button Content="ИГРАТЬ"
+                                Width="190"
+                                Style="{StaticResource PrimaryButtonStyle}"/>
+
+                        <StackPanel Margin="20,7,0,0">
+                            <TextBlock Text="Minecraft 1.21.1"
+                                       Foreground="White"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"/>
+
+                            <TextBlock Text="Fabric • Сборка готова"
+                                       Foreground="#7C8290"
+                                       FontSize="12"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+
+                <Border Grid.Column="1"
+                        CornerRadius="18"
+                        Background="#252A38"
+                        Margin="20">
+
+                    <TextBlock Text="Здесь позже будет&#x0a;арт или видео-фон"
+                               TextAlignment="Center"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Foreground="#777D8B"
+                               FontSize="18"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1"
+              Margin="0,22,0,0">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="18"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0"
+                    CornerRadius="16"
+                    Background="#151922"
+                    BorderBrush="#282D39"
+                    BorderThickness="1">
+
+                <StackPanel Margin="22">
+                    <TextBlock Text="Последние новости"
+                               Foreground="White"
+                               FontSize="18"
+                               FontWeight="SemiBold"/>
+
+                    <TextBlock Text="Разработка StoryLauncher началась"
+                               Margin="0,18,0,0"
+                               Foreground="#C4C8D2"
+                               FontSize="14"/>
+
+                    <TextBlock Text="Мы создаём собственный лаунчер для модпака."
+                               Margin="0,7,0,0"
+                               Foreground="#737987"
+                               FontSize="12"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2"
+                    CornerRadius="16"
+                    Background="#151922"
+                    BorderBrush="#282D39"
+                    BorderThickness="1">
+
+                <StackPanel Margin="22">
+                    <TextBlock Text="Статус сборки"
+                               Foreground="White"
+                               FontSize="18"
+                               FontWeight="SemiBold"/>
+
+                    <TextBlock Text="Готова к настройке"
+                               Margin="0,18,0,0"
+                               Foreground="#8A78FF"
+                               FontSize="14"
+                               FontWeight="SemiBold"/>
+
+                    <TextBlock Text="Следующий этап: интерфейс и навигация"
+                               Margin="0,7,0,0"
+                               Foreground="#737987"
+                               FontSize="12"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Page>

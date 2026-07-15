@@ -1,0 +1,142 @@
+﻿<Window x:Class="StoryLauncher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:StoryLauncher"
+        mc:Ignorable="d"
+        Title="StoryLauncher"
+        Width="1280"
+        Height="720"
+        MinWidth="1100"
+        MinHeight="650"
+        WindowStartupLocation="CenterScreen"
+        Background="#0D0F14">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Левое меню -->
+        <Border Grid.Column="0"
+                Background="#11141B"
+                BorderBrush="#252A35"
+                BorderThickness="0,0,1,0">
+
+            <Grid Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="35"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel>
+                    <TextBlock Text="STORY"
+                               Foreground="White"
+                               FontSize="28"
+                               FontWeight="Bold"/>
+
+                    <TextBlock Text="LAUNCHER"
+                               Foreground="#8A78FF"
+                               FontSize="14"
+                               FontWeight="SemiBold"/>
+                </StackPanel>
+
+                <Button x:Name="HomeButton"
+                        Grid.Row="2"
+                        Content="Главная"
+                        Style="{StaticResource SelectedNavigationButtonStyle}"
+                        Click="HomeButton_Click"/>
+
+                <Button x:Name="ModpackButton"
+                        Grid.Row="3"
+                        Content="Модпак"
+                        Style="{StaticResource NavigationButtonStyle}"
+                        Click="ModpackButton_Click"/>
+
+                <Button x:Name="SettingsButton"
+                        Grid.Row="4"
+                        Content="Настройки"
+                        Style="{StaticResource NavigationButtonStyle}"
+                        Click="SettingsButton_Click"/>
+
+                <TextBlock Grid.Row="6"
+                           Text="Версия лаунчера 0.1.0"
+                           Foreground="#666B78"
+                           FontSize="12"/>
+            </Grid>
+        </Border>
+
+        <!-- Основная область -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="76"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Верхняя панель -->
+            <Border Grid.Row="0"
+                    Background="#0F1218"
+                    BorderBrush="#252A35"
+                    BorderThickness="0,0,0,1">
+
+                <Grid Margin="28,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock x:Name="PageTitle"
+                               Text="Главная"
+                               VerticalAlignment="Center"
+                               Foreground="White"
+                               FontSize="22"
+                               FontWeight="SemiBold"/>
+
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+
+                        <Border Width="38"
+                                Height="38"
+                                CornerRadius="19"
+                                Background="#292343">
+
+                            <TextBlock Text="S"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Foreground="White"
+                                       FontSize="16"
+                                       FontWeight="Bold"/>
+                        </Border>
+
+                        <StackPanel Margin="12,0,0,0"
+                                    VerticalAlignment="Center">
+
+                            <TextBlock Text="Игрок"
+                                       Foreground="White"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"/>
+
+                            <TextBlock Text="Не авторизован"
+                                       Foreground="#777D8B"
+                                       FontSize="11"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Здесь будут отображаться страницы -->
+            <Frame x:Name="MainFrame"
+                   Grid.Row="1"
+                   NavigationUIVisibility="Hidden"
+                   Background="Transparent"/>
+        </Grid>
+    </Grid>
+</Window>
