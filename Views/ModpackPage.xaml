@@ -5,38 +5,234 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       mc:Ignorable="d"
       Background="Transparent"
-      Title="ModpackPage">
+      Title="ModpackPage"
+      Opacity="0"
+      Loaded="Page_Loaded">
 
-    <Grid Margin="28">
+    <Grid x:Name="RootGrid"
+          Margin="28"
+          RenderTransformOrigin="0.5,0.5">
+
+        <Grid.RenderTransform>
+            <TranslateTransform Y="18"/>
+        </Grid.RenderTransform>
+
         <Border CornerRadius="20"
                 Background="#191D27"
                 BorderBrush="#2B3040"
                 BorderThickness="1">
 
-            <StackPanel Margin="36">
-                <TextBlock Text="Модпак"
-                           Foreground="White"
-                           FontSize="34"
-                           FontWeight="Bold"/>
+            <Grid Margin="26">
 
-                <TextBlock Text="Story Modpack"
-                           Margin="0,12,0,0"
-                           Foreground="#8A78FF"
-                           FontSize="20"
-                           FontWeight="SemiBold"/>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                <TextBlock Text="Здесь позже будет информация о версии сборки, модах, размере загрузки и обновлениях."
-                           Margin="0,16,0,0"
-                           Foreground="#A8ADBA"
-                           FontSize="16"
-                           TextWrapping="Wrap"/>
+                <!-- Заголовок -->
+                <StackPanel Grid.Row="0">
 
-                <Button Content="ПРОВЕРИТЬ ФАЙЛЫ"
-                        Width="220"
-                        Margin="0,30,0,0"
-                        HorizontalAlignment="Left"
-                        Style="{StaticResource PrimaryButtonStyle}"/>
-            </StackPanel>
+                    <TextBlock Text="Модпак"
+                               Foreground="White"
+                               FontSize="30"
+                               FontWeight="Bold"/>
+
+                    <TextBlock Text="Story Modpack"
+                               Margin="0,8,0,0"
+                               Foreground="#8A78FF"
+                               FontSize="18"
+                               FontWeight="SemiBold"/>
+
+                    <TextBlock Text="При первом запуске лаунчер установит Minecraft 1.21.1. Затем мы подключим Fabric и автоматическую установку всей сборки."
+                               Margin="0,10,0,0"
+                               Foreground="#A8ADBA"
+                               FontSize="14"
+                               LineHeight="20"
+                               TextWrapping="Wrap"/>
+
+                </StackPanel>
+
+                <!-- Информация о сборке -->
+                <Border Grid.Row="1"
+                        Margin="0,18,0,0"
+                        Padding="16"
+                        CornerRadius="14"
+                        Background="#131620"
+                        BorderBrush="#292E3D"
+                        BorderThickness="1">
+
+                    <Grid>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+
+                            <TextBlock Text="ВЕРСИЯ ИГРЫ"
+                                       Foreground="#737989"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"/>
+
+                            <TextBlock Text="Minecraft 1.21.1"
+                                       Margin="0,5,0,0"
+                                       Foreground="White"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"/>
+
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1">
+
+                            <TextBlock Text="ЗАГРУЗЧИК"
+                                       Foreground="#737989"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"/>
+
+                            <TextBlock Text="Fabric"
+                                       Margin="0,5,0,0"
+                                       Foreground="White"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"/>
+
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+
+                            <TextBlock Text="FABRIC LOADER"
+                                       Foreground="#737989"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"/>
+
+                            <TextBlock Text="0.19.3"
+                                       Margin="0,5,0,0"
+                                       Foreground="White"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"/>
+
+                        </StackPanel>
+
+                    </Grid>
+
+                </Border>
+
+                <!-- Статус установки -->
+                <Border Grid.Row="2"
+                        Margin="0,14,0,0"
+                        Padding="16"
+                        CornerRadius="14"
+                        Background="#131620"
+                        BorderBrush="#292E3D"
+                        BorderThickness="1">
+
+                    <StackPanel>
+
+                        <Grid>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock x:Name="StatusTextBlock"
+                                       Grid.Column="0"
+                                       Text="Проверка состояния установки..."
+                                       Foreground="#D5D8E2"
+                                       FontSize="14"
+                                       TextWrapping="Wrap"/>
+
+                            <TextBlock x:Name="ProgressPercentTextBlock"
+                                       Grid.Column="1"
+                                       Margin="14,0,0,0"
+                                       Text="0%"
+                                       Foreground="#8A78FF"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"/>
+
+                        </Grid>
+
+                        <ProgressBar x:Name="InstallProgressBar"
+                                     Height="8"
+                                     Margin="0,12,0,0"
+                                     Minimum="0"
+                                     Maximum="100"
+                                     Value="0"
+                                     IsIndeterminate="False"/>
+
+                    </StackPanel>
+
+                </Border>
+
+                <!-- Папка установки -->
+                <StackPanel Grid.Row="3"
+                            Margin="0,14,0,0">
+
+                    <TextBlock Text="Папка игры"
+                               Foreground="#737989"
+                               FontSize="11"
+                               FontWeight="SemiBold"/>
+
+                    <TextBox x:Name="GamePathTextBox"
+                             Margin="0,6,0,0"
+                             Height="36"
+                             Padding="12,0"
+                             VerticalContentAlignment="Center"
+                             IsReadOnly="True"
+                             Foreground="#D5D8E2"
+                             Background="#131620"
+                             BorderBrush="#292E3D"
+                             BorderThickness="1"/>
+
+                </StackPanel>
+
+                <!-- Кнопки -->
+                <Grid Grid.Row="5"
+                      Margin="0,18,0,0">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button x:Name="InstallButton"
+                            Grid.Column="0"
+                            Content="УСТАНОВИТЬ MINECRAFT"
+                            Height="42"
+                            FontSize="12"
+                            Click="InstallButton_Click"
+                            Style="{StaticResource PrimaryButtonStyle}"/>
+
+                    <Button x:Name="CheckFilesButton"
+                            Grid.Column="2"
+                            Content="ПРОВЕРИТЬ ФАЙЛЫ"
+                            Height="42"
+                            FontSize="12"
+                            Click="CheckFilesButton_Click"
+                            Style="{StaticResource PrimaryButtonStyle}"/>
+
+                    <Button x:Name="OpenGameFolderButton"
+                            Grid.Column="4"
+                            Content="ОТКРЫТЬ ПАПКУ"
+                            Height="42"
+                            FontSize="12"
+                            Click="OpenGameFolderButton_Click"
+                            Style="{StaticResource PrimaryButtonStyle}"/>
+
+                </Grid>
+
+            </Grid>
+
         </Border>
+
     </Grid>
+
 </Page>

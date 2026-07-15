@@ -5,78 +5,198 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       mc:Ignorable="d"
       Background="Transparent"
-      Title="HomePage">
+      Title="HomePage"
+      Opacity="0"
+      Loaded="Page_Loaded">
 
-    <Grid Margin="28">
+    <Grid x:Name="RootGrid"
+          Margin="28"
+          RenderTransformOrigin="0.5,0.5">
+
+        <Grid.RenderTransform>
+            <TranslateTransform Y="18"/>
+        </Grid.RenderTransform>
+
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="180"/>
         </Grid.RowDefinitions>
 
+        <!-- Главный баннер -->
         <Border Grid.Row="0"
                 CornerRadius="20"
-                Background="#191D27"
                 BorderBrush="#2B3040"
-                BorderThickness="1">
+                BorderThickness="1"
+                ClipToBounds="True">
 
-            <Grid Margin="36">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="360"/>
-                </Grid.ColumnDefinitions>
+            <Grid>
 
-                <StackPanel VerticalAlignment="Center">
+                <!-- Фоновое изображение -->
+                <Image Source="/StoryLauncher;component/Assets/Images/MainBanner.png"
+                       Stretch="UniformToFill"/>
+
+                <!-- Затемнение слева -->
+                <Border>
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0"
+                                             EndPoint="1,0">
+
+                            <GradientStop Color="#F0191D27"
+                                          Offset="0"/>
+
+                            <GradientStop Color="#D0191D27"
+                                          Offset="0.48"/>
+
+                            <GradientStop Color="#65191D27"
+                                          Offset="0.76"/>
+
+                            <GradientStop Color="#25191D27"
+                                          Offset="1"/>
+
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+
+                <!-- Затемнение снизу -->
+                <Border VerticalAlignment="Bottom"
+                        Height="170">
+
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0"
+                                             EndPoint="0,1">
+
+                            <GradientStop Color="#00191D27"
+                                          Offset="0"/>
+
+                            <GradientStop Color="#E0191D27"
+                                          Offset="1"/>
+
+                        </LinearGradientBrush>
+                    </Border.Background>
+
+                </Border>
+
+                <!-- Основной текст -->
+                <StackPanel Margin="42"
+                            Width="650"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center">
+
                     <TextBlock Text="ТВОЯ ИСТОРИЯ НАЧИНАЕТСЯ ЗДЕСЬ"
-                               Foreground="#8A78FF"
+                               Foreground="#A494FF"
                                FontSize="14"
                                FontWeight="Bold"/>
 
                     <TextBlock Text="Story Modpack"
                                Margin="0,12,0,0"
                                Foreground="White"
-                               FontSize="46"
+                               FontSize="48"
                                FontWeight="Bold"/>
 
                     <TextBlock Text="Приключения, магия, боссы и собственная атмосфера."
                                Margin="0,14,0,0"
-                               Foreground="#A8ADBA"
-                               FontSize="17"/>
+                               Foreground="#D8DAE1"
+                               FontSize="17"
+                               TextWrapping="Wrap"/>
 
+                    <!-- Кнопка запуска -->
                     <StackPanel Orientation="Horizontal"
                                 Margin="0,30,0,0">
 
-                        <Button Content="ИГРАТЬ"
+                        <Button x:Name="PlayButton"
+                                Content="ИГРАТЬ"
                                 Width="190"
+                                Height="52"
+                                Click="PlayButton_Click"
                                 Style="{StaticResource PrimaryButtonStyle}"/>
 
-                        <StackPanel Margin="20,7,0,0">
+                        <StackPanel Margin="20,4,0,0">
+
                             <TextBlock Text="Minecraft 1.21.1"
                                        Foreground="White"
                                        FontSize="14"
                                        FontWeight="SemiBold"/>
 
-                            <TextBlock Text="Fabric • Сборка готова"
-                                       Foreground="#7C8290"
+                            <TextBlock Text="Fabric Loader 0.19.3"
+                                       Margin="0,3,0,0"
+                                       Foreground="#B5BAC7"
                                        FontSize="12"/>
+
+                            <TextBlock x:Name="PlayerInfoTextBlock"
+                                       Text="Профиль загружается..."
+                                       Margin="0,3,0,0"
+                                       Foreground="#8A78FF"
+                                       FontSize="12"/>
+
                         </StackPanel>
+
                     </StackPanel>
+
+                    <!-- Состояние запуска -->
+                    <StackPanel Margin="0,20,0,0">
+
+                        <Grid Width="460"
+                              HorizontalAlignment="Left">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock x:Name="GameStatusTextBlock"
+                                       Grid.Column="0"
+                                       Text="Проверка состояния сборки..."
+                                       Foreground="#D8DAE1"
+                                       FontSize="13"
+                                       TextWrapping="Wrap"/>
+
+                            <TextBlock x:Name="GameProgressTextBlock"
+                                       Grid.Column="1"
+                                       Margin="14,0,0,0"
+                                       Text="0%"
+                                       Foreground="#A494FF"
+                                       FontSize="13"
+                                       FontWeight="SemiBold"/>
+
+                        </Grid>
+
+                        <ProgressBar x:Name="GameProgressBar"
+                                     Width="460"
+                                     Height="7"
+                                     Margin="0,9,0,0"
+                                     HorizontalAlignment="Left"
+                                     Minimum="0"
+                                     Maximum="100"
+                                     Value="0"
+                                     IsIndeterminate="False"/>
+
+                    </StackPanel>
+
                 </StackPanel>
 
-                <Border Grid.Column="1"
-                        CornerRadius="18"
-                        Background="#252A38"
-                        Margin="20">
+                <!-- Подпись справа снизу -->
+                <StackPanel HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Margin="0,0,30,28">
 
-                    <TextBlock Text="Здесь позже будет&#x0a;арт или видео-фон"
-                               TextAlignment="Center"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               Foreground="#777D8B"
-                               FontSize="18"/>
-                </Border>
+                    <TextBlock Text="STORY WORLD"
+                               HorizontalAlignment="Right"
+                               Foreground="White"
+                               FontSize="16"
+                               FontWeight="Bold"/>
+
+                    <TextBlock Text="Мир магии и приключений"
+                               Margin="0,4,0,0"
+                               Foreground="#D4D6DD"
+                               FontSize="12"/>
+
+                </StackPanel>
+
             </Grid>
+
         </Border>
 
+        <!-- Нижняя часть -->
         <Grid Grid.Row="1"
               Margin="0,22,0,0">
 
@@ -86,6 +206,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
+            <!-- Новости -->
             <Border Grid.Column="0"
                     CornerRadius="16"
                     Background="#151922"
@@ -93,23 +214,28 @@
                     BorderThickness="1">
 
                 <StackPanel Margin="22">
+
                     <TextBlock Text="Последние новости"
                                Foreground="White"
                                FontSize="18"
                                FontWeight="SemiBold"/>
 
-                    <TextBlock Text="Разработка StoryLauncher началась"
+                    <TextBlock Text="Разработка StoryLauncher продолжается"
                                Margin="0,18,0,0"
                                Foreground="#C4C8D2"
                                FontSize="14"/>
 
-                    <TextBlock Text="Мы создаём собственный лаунчер для модпака."
+                    <TextBlock Text="Minecraft и Fabric уже устанавливаются через лаунчер. Теперь подключается полноценный запуск сборки."
                                Margin="0,7,0,0"
                                Foreground="#737987"
-                               FontSize="12"/>
+                               FontSize="12"
+                               TextWrapping="Wrap"/>
+
                 </StackPanel>
+
             </Border>
 
+            <!-- Статус сборки -->
             <Border Grid.Column="2"
                     CornerRadius="16"
                     Background="#151922"
@@ -117,24 +243,32 @@
                     BorderThickness="1">
 
                 <StackPanel Margin="22">
+
                     <TextBlock Text="Статус сборки"
                                Foreground="White"
                                FontSize="18"
                                FontWeight="SemiBold"/>
 
-                    <TextBlock Text="Готова к настройке"
+                    <TextBlock x:Name="ModpackStateTextBlock"
+                               Text="Проверка..."
                                Margin="0,18,0,0"
                                Foreground="#8A78FF"
                                FontSize="14"
                                FontWeight="SemiBold"/>
 
-                    <TextBlock Text="Следующий этап: интерфейс и навигация"
+                    <TextBlock x:Name="ModpackDetailsTextBlock"
+                               Text="Minecraft 1.21.1 • Fabric 0.19.3"
                                Margin="0,7,0,0"
                                Foreground="#737987"
                                FontSize="12"
                                TextWrapping="Wrap"/>
+
                 </StackPanel>
+
             </Border>
+
         </Grid>
+
     </Grid>
+
 </Page>

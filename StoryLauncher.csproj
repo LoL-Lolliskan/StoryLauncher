@@ -1,20 +1,60 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWPF>true</UseWPF>
 
-  <ItemGroup>
-    <Folder Include="Assets\" />
-    <Folder Include="Controls\" />
-    <Folder Include="Models\" />
-    <Folder Include="Resources\" />
-    <Folder Include="Services\" />
-    <Folder Include="ViewModels\" />
-  </ItemGroup>
+		<!-- Иконка приложения (.exe) -->
+		<ApplicationIcon>Assets\Icons\LauncherIcon.ico</ApplicationIcon>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Remove="Assets\Audio\MenuMusic.mp3" />
+		<None Remove="Assets\Icons\LauncherIcon.ico" />
+		<None Remove="Assets\Images\MainBanner.png" />
+		<None Remove="Assets\Logo\StoryLauncherLogo.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="Assets\Audio\MenuMusic.mp3">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Controls\" />
+		<Folder Include="Models\" />
+		<Folder Include="Resources\" />
+		<Folder Include="ViewModels\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="CmlLib.Core" Version="4.0.6" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Resource Include="Assets\Icons\LauncherIcon.ico">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Resource>
+
+		<Resource Include="Assets\Images\MainBanner.png">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Resource>
+
+		<Resource Include="Assets\Logo\StoryLauncherLogo.png">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Resource>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EditorConfigFiles Remove="C:\Projects\StoryLauncher\StoryLauncher\Services\.editorconfig" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="C:\Projects\StoryLauncher\StoryLauncher\Services\.editorconfig" />
+	</ItemGroup>
 
 </Project>
