@@ -12,9 +12,20 @@ namespace StoryLauncher.Views
 {
     public partial class ModpackPage : Page
     {
-        private readonly MinecraftInstallService _minecraftInstallService;
-        private readonly FabricInstallService _fabricInstallService;
-        private readonly MinecraftLaunchService _minecraftLaunchService;
+        private readonly MinecraftInstallService
+            _minecraftInstallService;
+
+        private readonly FabricInstallService
+            _fabricInstallService;
+
+        private readonly MinecraftLaunchService
+            _minecraftLaunchService;
+
+        private readonly ModpackUpdateService
+            _modpackUpdateService;
+
+        private readonly ModpackInstallerService
+            _modpackInstallerService;
 
         private bool _isInstalling;
         private bool _isGameRunning;
@@ -23,9 +34,20 @@ namespace StoryLauncher.Views
         {
             InitializeComponent();
 
-            _minecraftInstallService = new MinecraftInstallService();
-            _fabricInstallService = new FabricInstallService();
-            _minecraftLaunchService = new MinecraftLaunchService();
+            _minecraftInstallService =
+                new MinecraftInstallService();
+
+            _fabricInstallService =
+                new FabricInstallService();
+
+            _minecraftLaunchService =
+                new MinecraftLaunchService();
+
+            _modpackUpdateService =
+                new ModpackUpdateService();
+
+            _modpackInstallerService =
+                new ModpackInstallerService();
 
             _minecraftInstallService.StatusChanged +=
                 InstallService_StatusChanged;
@@ -62,21 +84,25 @@ namespace StoryLauncher.Views
 
         private void PlayPageAnimation()
         {
-            var fade = new DoubleAnimation(
-                0,
-                1,
-                TimeSpan.FromMilliseconds(350));
+            var fade =
+                new DoubleAnimation(
+                    0,
+                    1,
+                    TimeSpan.FromMilliseconds(350));
 
-            var move = new DoubleAnimation(
-                18,
-                0,
-                TimeSpan.FromMilliseconds(350))
-            {
-                EasingFunction = new CubicEase
+            var move =
+                new DoubleAnimation(
+                    18,
+                    0,
+                    TimeSpan.FromMilliseconds(350))
                 {
-                    EasingMode = EasingMode.EaseOut
-                }
-            };
+                    EasingFunction =
+                        new CubicEase
+                        {
+                            EasingMode =
+                                EasingMode.EaseOut
+                        }
+                };
 
             BeginAnimation(
                 Page.OpacityProperty,
@@ -95,20 +121,24 @@ namespace StoryLauncher.Views
             object sender,
             RoutedEventArgs e)
         {
-            if (_isInstalling || _isGameRunning)
+            if (_isInstalling ||
+                _isGameRunning)
+            {
                 return;
+            }
 
             bool minecraftInstalled =
-                _minecraftInstallService.IsVanillaInstalled();
+                _minecraftInstallService
+                    .IsVanillaInstalled();
 
             bool fabricInstalled =
-                _fabricInstallService.IsFabricInstalled();
+                _fabricInstallService
+                    .IsFabricInstalled();
 
             try
             {
                 /*
-                 * Шаг 1.
-                 * Устанавливаем Minecraft 1.21.1.
+                 * Шаг 1 — установка Minecraft.
                  */
                 if (!minecraftInstalled)
                 {
@@ -120,7 +150,9 @@ namespace StoryLauncher.Views
                             MessageBoxImage.Question);
 
                     if (result != MessageBoxResult.Yes)
+                    {
                         return;
+                    }
 
                     SetInstallingState(true);
 
@@ -143,8 +175,7 @@ namespace StoryLauncher.Views
                 }
 
                 /*
-                 * Шаг 2.
-                 * Устанавливаем Fabric Loader.
+                 * Шаг 2 — установка Fabric.
                  */
                 if (!fabricInstalled)
                 {
@@ -157,7 +188,9 @@ namespace StoryLauncher.Views
                             MessageBoxImage.Question);
 
                     if (result != MessageBoxResult.Yes)
+                    {
                         return;
+                    }
 
                     SetInstallingState(true);
 
@@ -180,22 +213,36 @@ namespace StoryLauncher.Views
                 }
 
                 /*
-                 * Шаг 3.
-                 * Minecraft и Fabric установлены — запускаем игру.
+                 * Шаг 3 — проверка и обновление модпака.
+                 */
+                SetInstallingState(true);
+
+                bool modpackReady =
+                    await EnsureModpackReadyAsync(
+                        askForConfirmation: true);
+
+                if (!modpackReady)
+                {
+                    return;
+                }
+
+                /*
+                 * Шаг 4 — запуск Minecraft.
                  */
                 await LaunchGameAsync();
             }
             catch (Exception exception)
             {
-                InstallProgressBar.IsIndeterminate = false;
+                InstallProgressBar.IsIndeterminate =
+                    false;
 
                 StatusTextBlock.Text =
-                    "Произошла ошибка установки.";
+                    "Произошла ошибка.";
 
                 MessageBox.Show(
-                    "Не удалось завершить установку.\n\n" +
+                    "Не удалось завершить операцию.\n\n" +
                     exception.Message,
-                    "Ошибка установки",
+                    "StoryLauncher",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
             }
@@ -209,12 +256,200 @@ namespace StoryLauncher.Views
             }
         }
 
+        /// <summary>
+        /// Проверяет файлы модпака и устанавливает
+        /// только отсутствующие или изменённые пакеты.
+        /// </summary>
+        private async Task<bool>
+            EnsureModpackReadyAsync(
+                bool askForConfirmation)
+        {
+            StatusTextBlock.Text =
+                "Проверка версии модпака...";
+
+            InstallProgressBar.IsIndeterminate =
+                true;
+
+            ProgressPercentTextBlock.Text =
+                "...";
+
+            /*
+             * Получаем информацию о последней версии.
+             */
+            ModpackVersionInfo versionInfo =
+                await _modpackUpdateService
+                    .DownloadVersionInfoAsync();
+
+            StatusTextBlock.Text =
+                "Загрузка списка файлов модпака...";
+
+            /*
+             * Получаем release-manifest.json.
+             *
+             * Мы скачиваем его даже при совпадении версии,
+             * чтобы найти случайно удалённые или повреждённые
+             * файлы сборки.
+             */
+            ModpackReleaseManifest manifest =
+                await _modpackUpdateService
+                    .DownloadManifestAsync(
+                        versionInfo.ManifestUrl);
+
+            StatusTextBlock.Text =
+                "Проверка файлов модпака...";
+
+            InstallProgressBar.IsIndeterminate =
+                true;
+
+            /*
+             * Сравниваем файлы игрока с manifest.
+             */
+            ModpackUpdatePlan plan =
+                await _modpackUpdateService
+                    .CreateUpdatePlanAsync(
+                        manifest,
+                        GamePathService.GameDirectory);
+
+            InstallProgressBar.IsIndeterminate =
+                false;
+
+            /*
+             * Ничего скачивать не нужно.
+             */
+            if (!plan.HasChanges)
+            {
+                InstallProgressBar.Value = 100;
+                ProgressPercentTextBlock.Text = "100%";
+
+                StatusTextBlock.Text =
+                    $"Модпак обновлён. Версия {manifest.Version}.";
+
+                return true;
+            }
+
+            /*
+             * Версия изменилась, но сами файлы
+             * уже совпадают. Просто сохраняем версию.
+             */
+            if (plan.DownloadFileCount == 0 &&
+                plan.FilesToDelete.Count == 0)
+            {
+                ModpackInstallStateService
+                    .SetInstalledVersion(
+                        manifest.Version);
+
+                ModpackStateService
+                    .SetInstalledVersion(
+                        manifest.Version);
+
+                InstallProgressBar.Value = 100;
+                ProgressPercentTextBlock.Text = "100%";
+
+                StatusTextBlock.Text =
+                    $"Версия модпака обновлена до " +
+                    $"{manifest.Version}.";
+
+                return true;
+            }
+
+            string downloadSize =
+                FormatFileSize(
+                    plan.DownloadSize);
+
+            if (askForConfirmation)
+            {
+                MessageBoxResult result =
+                    MessageBox.Show(
+                        "Доступно обновление модпака.\n\n" +
+                        $"Установлено: {plan.InstalledVersion}\n" +
+                        $"Новая версия: {plan.LatestVersion}\n" +
+                        $"Файлов для загрузки: " +
+                        $"{plan.DownloadFileCount}\n" +
+                        $"Размер загрузки: {downloadSize}\n\n" +
+                        "Скачать и установить обновление?",
+                        "Обновление Story Modpack",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Information);
+
+                if (result != MessageBoxResult.Yes)
+                {
+                    StatusTextBlock.Text =
+                        "Обновление модпака отменено.";
+
+                    InstallProgressBar.Value = 0;
+                    ProgressPercentTextBlock.Text = "0%";
+
+                    return false;
+                }
+            }
+
+            InstallButton.Content =
+                "ОБНОВЛЕНИЕ...";
+
+            StatusTextBlock.Text =
+                "Подготовка обновления модпака...";
+
+            InstallProgressBar.Value = 0;
+            ProgressPercentTextBlock.Text = "0%";
+
+            var progress =
+                new Progress<ModpackInstallProgress>(
+                    update =>
+                    {
+                        int safePercent =
+                            Math.Clamp(
+                                update.Percent,
+                                0,
+                                100);
+
+                        InstallProgressBar
+                            .IsIndeterminate = false;
+
+                        InstallProgressBar.Value =
+                            safePercent;
+
+                        ProgressPercentTextBlock.Text =
+                            $"{safePercent}%";
+
+                        StatusTextBlock.Text =
+                            $"{update.Status}\n" +
+                            $"{update.CurrentFile}/" +
+                            $"{update.TotalFiles}: " +
+                            $"{update.FileName}";
+                    });
+
+            /*
+             * Скачиваем и устанавливаем только файлы,
+             * указанные в плане обновления.
+             */
+            await _modpackInstallerService
+                .InstallUpdateAsync(
+                    plan,
+                    GamePathService.GameDirectory,
+                    progress);
+
+            InstallProgressBar.Value = 100;
+            ProgressPercentTextBlock.Text = "100%";
+
+            StatusTextBlock.Text =
+                $"Модпак успешно обновлён до версии " +
+                $"{plan.LatestVersion}.";
+
+            return true;
+        }
+
         private async Task LaunchGameAsync()
         {
             if (_isGameRunning)
+            {
                 return;
+            }
 
-            Window? mainWindow = Window.GetWindow(this);
+            Window? mainWindow =
+                Window.GetWindow(this);
+
+            bool musicPaused =
+                false;
 
             try
             {
@@ -222,21 +457,29 @@ namespace StoryLauncher.Views
 
                 SetControlsEnabled(false);
 
-                InstallButton.Content = "ЗАПУСК...";
+                InstallButton.Content =
+                    "ЗАПУСК...";
 
-                InstallProgressBar.IsIndeterminate = false;
-                InstallProgressBar.Value = 0;
+                InstallProgressBar.IsIndeterminate =
+                    false;
 
-                ProgressPercentTextBlock.Text = "0%";
+                InstallProgressBar.Value =
+                    0;
+
+                ProgressPercentTextBlock.Text =
+                    "0%";
 
                 StatusTextBlock.Text =
                     "Подготовка Fabric-сборки к запуску...";
 
                 string username =
-                    SettingsService.Current.Nickname?.Trim()
+                    SettingsService.Current
+                        .Nickname?
+                        .Trim()
                     ?? string.Empty;
 
-                if (string.IsNullOrWhiteSpace(username))
+                if (string.IsNullOrWhiteSpace(
+                        username))
                 {
                     MessageBox.Show(
                         "Сначала открой профиль и введи свой ник.",
@@ -247,28 +490,31 @@ namespace StoryLauncher.Views
                     return;
                 }
 
-                /*
-                 * Выделяем игре оперативную память
-                 */
-                int ramMb = SettingsService.Current.AllocatedRamMb;
+                int ramMb =
+                    SettingsService.Current
+                        .AllocatedRamMb;
 
                 Process process =
-                    await _minecraftLaunchService.LaunchAsync(
-                        username,
-                        ramMb);
+                    await _minecraftLaunchService
+                        .LaunchAsync(
+                            username,
+                            ramMb);
 
-                InstallProgressBar.IsIndeterminate = false;
-                InstallProgressBar.Value = 100;
+                InstallProgressBar.Value =
+                    100;
 
-                ProgressPercentTextBlock.Text = "100%";
+                ProgressPercentTextBlock.Text =
+                    "100%";
 
                 StatusTextBlock.Text =
                     "Minecraft запущен.";
 
                 bool shouldResumeMusic =
-                    SettingsService.Current.MusicEnabled;
+                    SettingsService.Current
+                        .MusicEnabled;
 
                 MusicService.Pause();
+                musicPaused = true;
 
                 if (mainWindow != null)
                 {
@@ -280,6 +526,7 @@ namespace StoryLauncher.Views
                 if (shouldResumeMusic)
                 {
                     MusicService.Resume();
+                    musicPaused = false;
                 }
 
                 if (mainWindow != null)
@@ -293,6 +540,12 @@ namespace StoryLauncher.Views
             }
             catch (Exception exception)
             {
+                if (musicPaused &&
+                    SettingsService.Current.MusicEnabled)
+                {
+                    MusicService.Resume();
+                }
+
                 if (mainWindow != null &&
                     !mainWindow.IsVisible)
                 {
@@ -300,7 +553,8 @@ namespace StoryLauncher.Views
                     mainWindow.Activate();
                 }
 
-                InstallProgressBar.IsIndeterminate = false;
+                InstallProgressBar.IsIndeterminate =
+                    false;
 
                 StatusTextBlock.Text =
                     "Не удалось запустить Minecraft.";
@@ -326,20 +580,27 @@ namespace StoryLauncher.Views
             object sender,
             RoutedEventArgs e)
         {
-            if (_isInstalling || _isGameRunning)
+            if (_isInstalling ||
+                _isGameRunning)
+            {
                 return;
+            }
 
             try
             {
-                CheckFilesButton.IsEnabled = false;
+                SetInstallingState(true);
+
+                CheckFilesButton.IsEnabled =
+                    false;
 
                 StatusTextBlock.Text =
-                    "Проверка файлов сборки...";
+                    "Проверка Minecraft и Fabric...";
 
-                InstallProgressBar.IsIndeterminate = true;
-                ProgressPercentTextBlock.Text = "...";
+                InstallProgressBar.IsIndeterminate =
+                    true;
 
-                await Task.Delay(500);
+                ProgressPercentTextBlock.Text =
+                    "...";
 
                 bool minecraftInstalled =
                     _minecraftInstallService
@@ -349,17 +610,11 @@ namespace StoryLauncher.Views
                     _fabricInstallService
                         .IsFabricInstalled();
 
-                int modsCount = CountFiles(
-                    GamePathService.ModsDirectory,
-                    "*.jar");
-
-                int worldsCount = CountDirectories(
-                    GamePathService.SavesDirectory);
-
-                InstallProgressBar.IsIndeterminate = false;
-
                 if (!minecraftInstalled)
                 {
+                    InstallProgressBar
+                        .IsIndeterminate = false;
+
                     InstallProgressBar.Value = 0;
                     ProgressPercentTextBlock.Text = "0%";
 
@@ -377,16 +632,18 @@ namespace StoryLauncher.Views
 
                 if (!fabricInstalled)
                 {
+                    InstallProgressBar
+                        .IsIndeterminate = false;
+
                     InstallProgressBar.Value = 50;
                     ProgressPercentTextBlock.Text = "50%";
 
                     StatusTextBlock.Text =
-                        "Minecraft установлен, но Fabric не установлен.";
+                        "Fabric Loader не установлен.";
 
                     MessageBox.Show(
                         "Minecraft 1.21.1 установлен.\n" +
-                        "Fabric Loader 0.19.3 не найден.\n\n" +
-                        "Нажми кнопку «Установить Fabric».",
+                        "Fabric Loader 0.19.3 не найден.",
                         "Проверка файлов",
                         MessageBoxButton.OK,
                         MessageBoxImage.Warning);
@@ -394,17 +651,30 @@ namespace StoryLauncher.Views
                     return;
                 }
 
-                InstallProgressBar.Value = 100;
-                ProgressPercentTextBlock.Text = "100%";
+                bool modpackReady =
+                    await EnsureModpackReadyAsync(
+                        askForConfirmation: true);
 
-                StatusTextBlock.Text =
-                    $"Сборка готова. Модов: {modsCount}. " +
-                    $"Миров: {worldsCount}.";
+                if (!modpackReady)
+                {
+                    return;
+                }
+
+                int modsCount =
+                    CountFiles(
+                        GamePathService.ModsDirectory,
+                        "*.jar");
+
+                int worldsCount =
+                    CountDirectories(
+                        GamePathService.SavesDirectory);
 
                 MessageBox.Show(
                     "Проверка завершена.\n\n" +
                     "Minecraft 1.21.1: установлен\n" +
                     "Fabric Loader 0.19.3: установлен\n" +
+                    $"Версия модпака: " +
+                    $"{ModpackInstallStateService.Current.InstalledVersion}\n" +
                     $"Количество модов: {modsCount}\n" +
                     $"Количество миров: {worldsCount}",
                     "Проверка файлов",
@@ -413,7 +683,8 @@ namespace StoryLauncher.Views
             }
             catch (Exception exception)
             {
-                InstallProgressBar.IsIndeterminate = false;
+                InstallProgressBar.IsIndeterminate =
+                    false;
 
                 StatusTextBlock.Text =
                     "Не удалось проверить файлы.";
@@ -427,10 +698,15 @@ namespace StoryLauncher.Views
             }
             finally
             {
-                if (!_isInstalling && !_isGameRunning)
+                SetInstallingState(false);
+
+                if (!_isGameRunning)
                 {
-                    CheckFilesButton.IsEnabled = true;
+                    CheckFilesButton.IsEnabled =
+                        true;
                 }
+
+                UpdateInstallationState();
             }
         }
 
@@ -446,9 +722,11 @@ namespace StoryLauncher.Views
                     new ProcessStartInfo
                     {
                         FileName =
-                            GamePathService.GameDirectory,
+                            GamePathService
+                                .GameDirectory,
 
-                        UseShellExecute = true
+                        UseShellExecute =
+                            true
                     });
             }
             catch (Exception exception)
@@ -467,7 +745,8 @@ namespace StoryLauncher.Views
         {
             Dispatcher.Invoke(() =>
             {
-                StatusTextBlock.Text = status;
+                StatusTextBlock.Text =
+                    status;
             });
         }
 
@@ -477,10 +756,16 @@ namespace StoryLauncher.Views
             Dispatcher.Invoke(() =>
             {
                 int safeProgress =
-                    Math.Clamp(progress, 0, 100);
+                    Math.Clamp(
+                        progress,
+                        0,
+                        100);
 
-                InstallProgressBar.IsIndeterminate = false;
-                InstallProgressBar.Value = safeProgress;
+                InstallProgressBar
+                    .IsIndeterminate = false;
+
+                InstallProgressBar.Value =
+                    safeProgress;
 
                 ProgressPercentTextBlock.Text =
                     $"{safeProgress}%";
@@ -490,26 +775,34 @@ namespace StoryLauncher.Views
         private void SetInstallingState(
             bool isInstalling)
         {
-            _isInstalling = isInstalling;
+            _isInstalling =
+                isInstalling;
 
             bool controlsEnabled =
-                !isInstalling && !_isGameRunning;
+                !isInstalling &&
+                !_isGameRunning;
 
-            SetControlsEnabled(controlsEnabled);
+            SetControlsEnabled(
+                controlsEnabled);
 
             if (isInstalling)
             {
                 InstallButton.Content =
-                    "УСТАНОВКА...";
+                    "ПОДОЖДИТЕ...";
             }
         }
 
         private void SetControlsEnabled(
             bool isEnabled)
         {
-            InstallButton.IsEnabled = isEnabled;
-            CheckFilesButton.IsEnabled = isEnabled;
-            OpenGameFolderButton.IsEnabled = isEnabled;
+            InstallButton.IsEnabled =
+                isEnabled;
+
+            CheckFilesButton.IsEnabled =
+                isEnabled;
+
+            OpenGameFolderButton.IsEnabled =
+                isEnabled;
         }
 
         private void UpdateInstallationState()
@@ -522,7 +815,8 @@ namespace StoryLauncher.Views
                 _fabricInstallService
                     .IsFabricInstalled();
 
-            InstallProgressBar.IsIndeterminate = false;
+            InstallProgressBar.IsIndeterminate =
+                false;
 
             if (!minecraftInstalled)
             {
@@ -552,14 +846,49 @@ namespace StoryLauncher.Views
                 return;
             }
 
+            string installedVersion =
+                ModpackInstallStateService
+                    .Current
+                    .InstalledVersion;
+
             StatusTextBlock.Text =
                 "Minecraft и Fabric установлены. " +
-                "Сборка готова к запуску.";
+                $"Версия модпака: {installedVersion}.";
 
             InstallProgressBar.Value = 100;
             ProgressPercentTextBlock.Text = "100%";
 
-            InstallButton.Content = "ИГРАТЬ";
+            InstallButton.Content =
+                "ИГРАТЬ";
+        }
+
+        private static string FormatFileSize(
+            long bytes)
+        {
+            string[] units =
+            {
+                "Б",
+                "КБ",
+                "МБ",
+                "ГБ",
+                "ТБ"
+            };
+
+            double size =
+                bytes;
+
+            int unitIndex =
+                0;
+
+            while (size >= 1024 &&
+                   unitIndex < units.Length - 1)
+            {
+                size /= 1024;
+                unitIndex++;
+            }
+
+            return
+                $"{size:0.##} {units[unitIndex]}";
         }
 
         private static int CountFiles(
@@ -567,14 +896,17 @@ namespace StoryLauncher.Views
             string searchPattern)
         {
             if (!Directory.Exists(directory))
+            {
                 return 0;
+            }
 
             try
             {
                 return Directory.GetFiles(
                     directory,
                     searchPattern,
-                    SearchOption.TopDirectoryOnly).Length;
+                    SearchOption.TopDirectoryOnly)
+                    .Length;
             }
             catch
             {
@@ -586,14 +918,17 @@ namespace StoryLauncher.Views
             string directory)
         {
             if (!Directory.Exists(directory))
+            {
                 return 0;
+            }
 
             try
             {
                 return Directory.GetDirectories(
                     directory,
                     "*",
-                    SearchOption.TopDirectoryOnly).Length;
+                    SearchOption.TopDirectoryOnly)
+                    .Length;
             }
             catch
             {

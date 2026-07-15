@@ -17,6 +17,10 @@ namespace StoryLauncher
         {
             SettingsService.Load();
 
+            ModpackStateService.Load();
+
+            ModpackInstallStateService.Load();
+
             GamePathService.CreateDirectories();
 
             base.OnStartup(e);
