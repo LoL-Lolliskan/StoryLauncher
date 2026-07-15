@@ -1,24 +1,30 @@
 ﻿using System.Windows;
 using StoryLauncher.Services;
+using Velopack;
 
 namespace StoryLauncher
 {
     public partial class App : Application
     {
-        protected override void OnStartup(StartupEventArgs e)
+        public App()
         {
-            // Загружаем сохранённые настройки до открытия окон
+            // Velopack должен запускаться как можно раньше.
+            VelopackApp.Build().Run();
+        }
+
+        protected override void OnStartup(
+            StartupEventArgs e)
+        {
             SettingsService.Load();
 
-            // Создаём папки лаунчера и игры
             GamePathService.CreateDirectories();
 
             base.OnStartup(e);
         }
 
-        protected override void OnExit(ExitEventArgs e)
+        protected override void OnExit(
+            ExitEventArgs e)
         {
-            // Дополнительно сохраняем настройки при закрытии
             SettingsService.Save();
 
             base.OnExit(e);

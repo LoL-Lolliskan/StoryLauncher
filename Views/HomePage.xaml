@@ -220,7 +220,7 @@
                                FontSize="18"
                                FontWeight="SemiBold"/>
 
-                    <TextBlock Text="Разработка StoryLauncher продолжается"
+                    <TextBlock Text="Автоматические обновления подключены"
                                Margin="0,18,0,0"
                                Foreground="#C4C8D2"
                                FontSize="14"/>
