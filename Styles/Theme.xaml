@@ -4,6 +4,8 @@
 
     <!-- Основные цвета StoryLauncher -->
     <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#0D1017"/>
+    <SolidColorBrush x:Key="LauncherBackgroundBrush" Color="#0D0F14"/>
+    <SolidColorBrush x:Key="LauncherBackgroundImage" Color="#0D0F14"/>
     <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#10141D"/>
     <SolidColorBrush x:Key="CardBackgroundBrush" Color="#191E2A"/>
     <SolidColorBrush x:Key="CardBorderBrush" Color="#2A3040"/>
@@ -11,6 +13,8 @@
     <SolidColorBrush x:Key="PrimaryBrush" Color="#7057FF"/>
     <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#816CFF"/>
     <SolidColorBrush x:Key="PrimaryPressedBrush" Color="#5C43E8"/>
+    <SolidColorBrush x:Key="AccentTextBrush" Color="#A494FF"/>
+    <SolidColorBrush x:Key="SelectedNavigationBrush" Color="#292343"/>
 
     <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="TextSecondaryBrush" Color="#A7ADBC"/>
@@ -33,22 +37,77 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="ButtonBorder"
-                            Background="{TemplateBinding Background}"
-                            CornerRadius="10"
-                            Padding="{TemplateBinding Padding}">
+                    <Grid x:Name="AnimatedRoot"
+                          RenderTransformOrigin="0.5,0.5">
+                        <Grid.RenderTransform>
+                            <ScaleTransform x:Name="ButtonScale"
+                                            ScaleX="1"
+                                            ScaleY="1"/>
+                        </Grid.RenderTransform>
 
-                        <ContentPresenter
-                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                            VerticalAlignment="Center"/>
-                    </Border>
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="10"/>
+
+                        <Border x:Name="HoverGlow"
+                                Background="{DynamicResource SelectedNavigationBrush}"
+                                BorderBrush="{DynamicResource PrimaryBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Opacity="0">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#7057FF"
+                                                  BlurRadius="18"
+                                                  ShadowDepth="0"
+                                                  Opacity="0.75"/>
+                            </Border.Effect>
+                        </Border>
+
+                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="Center"/>
+                    </Grid>
 
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="ButtonBorder"
-                                    Property="Background"
-                                    Value="#242032"/>
+                        <EventTrigger RoutedEvent="MouseEnter">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="ButtonScale"
+                                                     Storyboard.TargetProperty="ScaleX"
+                                                     To="1.025"
+                                                     Duration="0:0:0.16"/>
+                                    <DoubleAnimation Storyboard.TargetName="ButtonScale"
+                                                     Storyboard.TargetProperty="ScaleY"
+                                                     To="1.025"
+                                                     Duration="0:0:0.16"/>
+                                    <DoubleAnimation Storyboard.TargetName="HoverGlow"
+                                                     Storyboard.TargetProperty="Opacity"
+                                                     To="0.48"
+                                                     Duration="0:0:0.18"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
 
+                        <EventTrigger RoutedEvent="MouseLeave">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="ButtonScale"
+                                                     Storyboard.TargetProperty="ScaleX"
+                                                     To="1"
+                                                     Duration="0:0:0.18"/>
+                                    <DoubleAnimation Storyboard.TargetName="ButtonScale"
+                                                     Storyboard.TargetProperty="ScaleY"
+                                                     To="1"
+                                                     Duration="0:0:0.18"/>
+                                    <DoubleAnimation Storyboard.TargetName="HoverGlow"
+                                                     Storyboard.TargetProperty="Opacity"
+                                                     To="0"
+                                                     Duration="0:0:0.22"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+
+                        <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Foreground"
                                     Value="White"/>
                         </Trigger>
@@ -56,7 +115,31 @@
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="ButtonBorder"
                                     Property="Background"
-                                    Value="#30294A"/>
+                                    Value="{DynamicResource PrimaryPressedBrush}"/>
+                        </Trigger>
+
+                        <Trigger Property="Tag" Value="Selected">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="SelectedPulseStoryboard">
+                                    <Storyboard AutoReverse="True"
+                                                RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="HoverGlow"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         From="0.52"
+                                                         To="0.86"
+                                                         Duration="0:0:1.25"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="SelectedPulseStoryboard"/>
+                            </Trigger.ExitActions>
+                            <Setter TargetName="ButtonBorder"
+                                    Property="Background"
+                                    Value="{DynamicResource SelectedNavigationBrush}"/>
+                            <Setter TargetName="HoverGlow"
+                                    Property="Opacity"
+                                    Value="0.72"/>
                         </Trigger>
 
                         <Trigger Property="IsEnabled" Value="False">
@@ -74,8 +157,9 @@
            BasedOn="{StaticResource NavigationButtonStyle}">
 
         <Setter Property="Foreground" Value="White"/>
-        <Setter Property="Background" Value="#30284D"/>
+        <Setter Property="Background" Value="{DynamicResource SelectedNavigationBrush}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Tag" Value="Selected"/>
     </Style>
 
     <!-- Главная фиолетовая кнопка -->
@@ -85,7 +169,7 @@
         <Setter Property="Height" Value="54"/>
         <Setter Property="Padding" Value="24,0"/>
         <Setter Property="Foreground" Value="White"/>
-        <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="FontSize" Value="17"/>
         <Setter Property="FontWeight" Value="Bold"/>
@@ -94,27 +178,84 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="ButtonBorder"
-                            Background="{TemplateBinding Background}"
-                            CornerRadius="12"
-                            Padding="{TemplateBinding Padding}">
+                    <Grid x:Name="AnimatedRoot"
+                          RenderTransformOrigin="0.5,0.5">
+                        <Grid.RenderTransform>
+                            <ScaleTransform x:Name="ButtonScale"
+                                            ScaleX="1"
+                                            ScaleY="1"/>
+                        </Grid.RenderTransform>
 
-                        <ContentPresenter
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"/>
-                    </Border>
+                        <Border x:Name="ButtonGlow"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="12"
+                                Opacity="0.28">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#7057FF"
+                                                  BlurRadius="22"
+                                                  ShadowDepth="0"
+                                                  Opacity="0.8"/>
+                            </Border.Effect>
+                        </Border>
+
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="12"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                    </Grid>
 
                     <ControlTemplate.Triggers>
+                        <EventTrigger RoutedEvent="MouseEnter">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="ButtonScale"
+                                                     Storyboard.TargetProperty="ScaleX"
+                                                     To="1.025"
+                                                     Duration="0:0:0.15"/>
+                                    <DoubleAnimation Storyboard.TargetName="ButtonScale"
+                                                     Storyboard.TargetProperty="ScaleY"
+                                                     To="1.025"
+                                                     Duration="0:0:0.15"/>
+                                    <DoubleAnimation Storyboard.TargetName="ButtonGlow"
+                                                     Storyboard.TargetProperty="Opacity"
+                                                     To="0.72"
+                                                     Duration="0:0:0.2"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+
+                        <EventTrigger RoutedEvent="MouseLeave">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="ButtonScale"
+                                                     Storyboard.TargetProperty="ScaleX"
+                                                     To="1"
+                                                     Duration="0:0:0.18"/>
+                                    <DoubleAnimation Storyboard.TargetName="ButtonScale"
+                                                     Storyboard.TargetProperty="ScaleY"
+                                                     To="1"
+                                                     Duration="0:0:0.18"/>
+                                    <DoubleAnimation Storyboard.TargetName="ButtonGlow"
+                                                     Storyboard.TargetProperty="Opacity"
+                                                     To="0.28"
+                                                     Duration="0:0:0.24"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="ButtonBorder"
                                     Property="Background"
-                                    Value="{StaticResource PrimaryHoverBrush}"/>
+                                    Value="{DynamicResource PrimaryHoverBrush}"/>
                         </Trigger>
 
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="ButtonBorder"
                                     Property="Background"
-                                    Value="{StaticResource PrimaryPressedBrush}"/>
+                                    Value="{DynamicResource PrimaryPressedBrush}"/>
                         </Trigger>
 
                         <Trigger Property="IsEnabled" Value="False">

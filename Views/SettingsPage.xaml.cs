@@ -134,26 +134,20 @@ namespace StoryLauncher.Views
             object sender,
             RoutedEventArgs e)
         {
-            MusicService.SetEnabled(true);
-
             if (_isLoadingSettings)
                 return;
 
-            SettingsService.Current.MusicEnabled = true;
-            SettingsService.Save();
+            MusicService.SetEnabled(true);
         }
 
         private void MusicCheckBox_Unchecked(
             object sender,
             RoutedEventArgs e)
         {
-            MusicService.SetEnabled(false);
-
             if (_isLoadingSettings)
                 return;
 
-            SettingsService.Current.MusicEnabled = false;
-            SettingsService.Save();
+            MusicService.SetEnabled(false);
         }
     }
 }

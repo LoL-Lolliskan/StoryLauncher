@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Reflection;
+using System.IO;
 using System.Windows;
 using StoryLauncher.Services;
 using StoryLauncher.Views;
@@ -17,6 +20,8 @@ namespace StoryLauncher
         public MainWindow()
         {
             InitializeComponent();
+
+            InitializeSidebarAvatarVideo();
 
             /*
              * Сначала создаём сервис обновлений.
@@ -45,6 +50,104 @@ namespace StoryLauncher
             ShowHomePage();
         }
 
+        private void InitializeSidebarAvatarVideo()
+        {
+            try
+            {
+                if (!SettingsService.Current.AnimationsEnabled)
+                {
+                    ShowSidebarAvatarFallback();
+                    return;
+                }
+
+                string videoPath = Path.Combine(
+                    AppContext.BaseDirectory,
+                    "Assets",
+                    "Videos",
+                    "SidebarAvatar.mp4");
+
+                if (!File.Exists(videoPath))
+                {
+                    SidebarAvatarVideo.Visibility = Visibility.Collapsed;
+                    SidebarAvatarFallback.Visibility = Visibility.Visible;
+                    return;
+                }
+
+                SidebarAvatarVideo.Source =
+                    new Uri(videoPath, UriKind.Absolute);
+
+                SidebarAvatarVideo.Visibility = Visibility.Visible;
+                SidebarAvatarVideo.Opacity = 0;
+                SidebarAvatarVideo.SpeedRatio = 0.8;
+                SidebarAvatarVideo.Play();
+            }
+            catch
+            {
+                ShowSidebarAvatarFallback();
+            }
+        }
+
+        private void SidebarAvatarVideo_MediaOpened(
+            object sender,
+            RoutedEventArgs e)
+        {
+            if (!SettingsService.Current.AnimationsEnabled)
+            {
+                ShowSidebarAvatarFallback();
+                return;
+            }
+
+            SidebarAvatarFallback.Visibility = Visibility.Collapsed;
+            SidebarAvatarVideo.Visibility = Visibility.Visible;
+            SidebarAvatarVideo.Opacity = 1;
+            SidebarAvatarVideo.SpeedRatio = 0.8;
+            SidebarAvatarVideo.Play();
+        }
+
+        private void SidebarAvatarVideo_MediaEnded(
+            object sender,
+            RoutedEventArgs e)
+        {
+            if (!SettingsService.Current.AnimationsEnabled)
+            {
+                ShowSidebarAvatarFallback();
+                return;
+            }
+
+            SidebarAvatarVideo.Position = TimeSpan.Zero;
+            SidebarAvatarVideo.Play();
+        }
+
+        private void SidebarAvatarVideo_MediaFailed(
+            object sender,
+            ExceptionRoutedEventArgs e)
+        {
+            ShowSidebarAvatarFallback();
+        }
+
+        private void ShowSidebarAvatarFallback()
+        {
+            SidebarAvatarVideo.Stop();
+            SidebarAvatarVideo.Opacity = 0;
+            SidebarAvatarVideo.Visibility = Visibility.Collapsed;
+            SidebarAvatarFallback.Visibility = Visibility.Visible;
+        }
+
+        public void ApplySidebarAnimationSetting(bool enabled)
+        {
+            SettingsService.Current.AnimationsEnabled = enabled;
+            SettingsService.Save();
+
+            if (enabled)
+            {
+                InitializeSidebarAvatarVideo();
+            }
+            else
+            {
+                ShowSidebarAvatarFallback();
+            }
+        }
+
         private void UpdateLauncherVersionDisplay()
         {
             try
@@ -57,7 +160,7 @@ namespace StoryLauncher
                     currentVersion == "Неизвестно")
                 {
                     LauncherVersionText.Text =
-                        "Версия лаунчера неизвестна";
+                        $"Версия лаунчера {GetAssemblyVersion()}";
 
                     return;
                 }
@@ -68,8 +171,20 @@ namespace StoryLauncher
             catch
             {
                 LauncherVersionText.Text =
-                    "Версия лаунчера неизвестна";
+                    $"Версия лаунчера {GetAssemblyVersion()}";
             }
+        }
+
+        private static string GetAssemblyVersion()
+        {
+            Version? version = Assembly
+                .GetExecutingAssembly()
+                .GetName()
+                .Version;
+
+            return version == null
+                ? "0.1.3"
+                : $"{version.Major}.{version.Minor}.{version.Build}";
         }
 
         private async void MainWindow_Loaded(
@@ -140,6 +255,36 @@ namespace StoryLauncher
                 (Style)FindResource(
                     "SelectedNavigationButtonStyle");
 
+            CustomLauncherButton.Style =
+                (Style)FindResource(
+                    "NavigationButtonStyle");
+
+            SettingsButton.Style =
+                (Style)FindResource(
+                    "NavigationButtonStyle");
+        }
+
+        private void CustomLauncherButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            MainFrame.Navigate(
+                new CustomLauncherPage());
+
+            PageTitle.Text = "Custom Launcher";
+
+            HomeButton.Style =
+                (Style)FindResource(
+                    "NavigationButtonStyle");
+
+            ModpackButton.Style =
+                (Style)FindResource(
+                    "NavigationButtonStyle");
+
+            CustomLauncherButton.Style =
+                (Style)FindResource(
+                    "SelectedNavigationButtonStyle");
+
             SettingsButton.Style =
                 (Style)FindResource(
                     "NavigationButtonStyle");
@@ -162,9 +307,38 @@ namespace StoryLauncher
                 (Style)FindResource(
                     "NavigationButtonStyle");
 
+            CustomLauncherButton.Style =
+                (Style)FindResource(
+                    "NavigationButtonStyle");
+
             SettingsButton.Style =
                 (Style)FindResource(
                     "SelectedNavigationButtonStyle");
+        }
+
+        private void DiscordButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            try
+            {
+                Process.Start(
+                    new ProcessStartInfo
+                    {
+                        FileName =
+                            "https://discord.gg/nGfcn4qv58",
+                        UseShellExecute = true
+                    });
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(
+                    "Не удалось открыть Discord.\n\n" +
+                    exception.Message,
+                    "StoryLauncher",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
         }
 
         private void ShowHomePage()
@@ -172,13 +346,17 @@ namespace StoryLauncher
             MainFrame.Navigate(
                 new HomePage());
 
-            PageTitle.Text = "Главная";
+            PageTitle.Text = "Новости";
 
             HomeButton.Style =
                 (Style)FindResource(
                     "SelectedNavigationButtonStyle");
 
             ModpackButton.Style =
+                (Style)FindResource(
+                    "NavigationButtonStyle");
+
+            CustomLauncherButton.Style =
                 (Style)FindResource(
                     "NavigationButtonStyle");
 
@@ -257,22 +435,18 @@ namespace StoryLauncher
                     Owner = this
                 };
 
-            bool? result =
-                profileWindow.ShowDialog();
+            profileWindow.ShowDialog();
 
-            if (result == true)
+            UpdateProfileDisplay();
+
+            /*
+             * Обновляем главную страницу,
+             * чтобы там сразу появился новый ник.
+             */
+            if (MainFrame.Content
+                is HomePage)
             {
-                UpdateProfileDisplay();
-
-                /*
-                 * Обновляем главную страницу,
-                 * чтобы там сразу появился новый ник.
-                 */
-                if (MainFrame.Content
-                    is HomePage)
-                {
-                    ShowHomePage();
-                }
+                ShowHomePage();
             }
         }
 
@@ -302,6 +476,37 @@ namespace StoryLauncher
                 nickname[0]
                     .ToString()
                     .ToUpperInvariant();
+
+            string avatarPath =
+                SettingsService.Current.UseCustomAvatar
+                    ? SettingsService.Current.CustomAvatarPath
+                    : ProfileImageService.MinecraftAvatarPath;
+
+            if (!string.IsNullOrWhiteSpace(avatarPath) &&
+                File.Exists(avatarPath))
+            {
+                try
+                {
+                    ProfileAvatarImage.Source =
+                        ProfileImageService.LoadBitmap(avatarPath);
+
+                    ProfileAvatarImage.Visibility =
+                        Visibility.Visible;
+
+                    ProfileFallbackIcon.Visibility =
+                        Visibility.Collapsed;
+
+                    return;
+                }
+                catch
+                {
+                    // Если файл повреждён, покажем обычную иконку.
+                }
+            }
+
+            ProfileAvatarImage.Source = null;
+            ProfileAvatarImage.Visibility = Visibility.Collapsed;
+            ProfileFallbackIcon.Visibility = Visibility.Visible;
         }
     }
 }

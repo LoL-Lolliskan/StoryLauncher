@@ -1,274 +1,217 @@
-﻿<Page x:Class="StoryLauncher.Views.HomePage"
+<Page x:Class="StoryLauncher.Views.HomePage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      mc:Ignorable="d"
       Background="Transparent"
-      Title="HomePage"
       Opacity="0"
-      Loaded="Page_Loaded">
+      Loaded="Page_Loaded"
+      Unloaded="Page_Unloaded">
 
-    <Grid x:Name="RootGrid"
-          Margin="28"
-          RenderTransformOrigin="0.5,0.5">
+    <Page.Resources>
+        <Style x:Key="CarouselButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="44"/>
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#80111620"/>
+            <Setter Property="BorderBrush" Value="#506B7280"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="22">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#CC6D55FF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
+        <!-- Тонкая тёмная полоса прокрутки без белых кнопок -->
+        <Style TargetType="{x:Type ScrollBar}">
+            <Setter Property="Width" Value="9"/>
+            <Setter Property="Margin" Value="6,0,2,0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollBar}">
+                        <Grid Width="9" Background="#11151D">
+                            <Track x:Name="PART_Track"
+                                   Orientation="{TemplateBinding Orientation}"
+                                   IsDirectionReversed="True"
+                                   Focusable="False">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}"
+                                                  Background="Transparent"
+                                                  BorderThickness="0"
+                                                  Focusable="False">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Background="Transparent"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Width="7" MinHeight="45">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border x:Name="ThumbBorder"
+                                                        Width="7"
+                                                        Background="{DynamicResource PrimaryBrush}"
+                                                        CornerRadius="4"
+                                                        Opacity="0.72"/>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="ThumbBorder"
+                                                                Property="Opacity"
+                                                                Value="1"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.PageDownCommand}"
+                                                  Background="Transparent"
+                                                  BorderThickness="0"
+                                                  Focusable="False">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Background="Transparent"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
+
+    <Grid x:Name="RootGrid" Margin="28">
         <Grid.RenderTransform>
             <TranslateTransform Y="18"/>
         </Grid.RenderTransform>
 
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="180"/>
-        </Grid.RowDefinitions>
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      PanningMode="VerticalOnly">
+            <StackPanel>
+                <Border Height="430"
+                        CornerRadius="20"
+                        BorderBrush="#2B3040"
+                        BorderThickness="1"
+                        ClipToBounds="True">
+                    <Grid x:Name="SlideContainer">
+                        <Image x:Name="NewsImage"
+                               Source="/StoryLauncher;component/Assets/Images/MainBanner.png"
+                               Stretch="UniformToFill"/>
 
-        <!-- Главный баннер -->
-        <Border Grid.Row="0"
-                CornerRadius="20"
-                BorderBrush="#2B3040"
-                BorderThickness="1"
-                ClipToBounds="True">
+                        <Border>
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#E90B0E15" Offset="0"/>
+                                    <GradientStop Color="#8A10131C" Offset="0.55"/>
+                                    <GradientStop Color="#3010131C" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
 
-            <Grid>
-
-                <!-- Фоновое изображение -->
-                <Image Source="/StoryLauncher;component/Assets/Images/MainBanner.png"
-                       Stretch="UniformToFill"/>
-
-                <!-- Затемнение слева -->
-                <Border>
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0"
-                                             EndPoint="1,0">
-
-                            <GradientStop Color="#F0191D27"
-                                          Offset="0"/>
-
-                            <GradientStop Color="#D0191D27"
-                                          Offset="0.48"/>
-
-                            <GradientStop Color="#65191D27"
-                                          Offset="0.76"/>
-
-                            <GradientStop Color="#25191D27"
-                                          Offset="1"/>
-
-                        </LinearGradientBrush>
-                    </Border.Background>
-                </Border>
-
-                <!-- Затемнение снизу -->
-                <Border VerticalAlignment="Bottom"
-                        Height="170">
-
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0"
-                                             EndPoint="0,1">
-
-                            <GradientStop Color="#00191D27"
-                                          Offset="0"/>
-
-                            <GradientStop Color="#E0191D27"
-                                          Offset="1"/>
-
-                        </LinearGradientBrush>
-                    </Border.Background>
-
-                </Border>
-
-                <!-- Основной текст -->
-                <StackPanel Margin="42"
-                            Width="650"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center">
-
-                    <TextBlock Text="ТВОЯ ИСТОРИЯ НАЧИНАЕТСЯ ЗДЕСЬ"
-                               Foreground="#A494FF"
-                               FontSize="14"
-                               FontWeight="Bold"/>
-
-                    <TextBlock Text="Story Modpack"
-                               Margin="0,12,0,0"
-                               Foreground="White"
-                               FontSize="48"
-                               FontWeight="Bold"/>
-
-                    <TextBlock Text="Приключения, магия, боссы и собственная атмосфера."
-                               Margin="0,14,0,0"
-                               Foreground="#D8DAE1"
-                               FontSize="17"
-                               TextWrapping="Wrap"/>
-
-                    <!-- Кнопка запуска -->
-                    <StackPanel Orientation="Horizontal"
-                                Margin="0,30,0,0">
-
-                        <Button x:Name="PlayButton"
-                                Content="ИГРАТЬ"
-                                Width="190"
-                                Height="52"
-                                Click="PlayButton_Click"
-                                Style="{StaticResource PrimaryButtonStyle}"/>
-
-                        <StackPanel Margin="20,4,0,0">
-
-                            <TextBlock Text="Minecraft 1.21.1"
+                        <StackPanel Width="650"
+                                    Margin="52,0,0,54"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Bottom">
+                            <TextBlock x:Name="NewsDateText"
+                                       Text="17 ИЮЛЯ 2026"
+                                       Foreground="{DynamicResource AccentTextBrush}"
+                                       FontSize="13"
+                                       FontWeight="Bold"/>
+                            <TextBlock x:Name="NewsTitleText"
+                                       Text="Добро пожаловать в StoryLauncher"
+                                       Margin="0,10,0,0"
                                        Foreground="White"
-                                       FontSize="14"
-                                       FontWeight="SemiBold"/>
-
-                            <TextBlock Text="Fabric Loader 0.19.3"
-                                       Margin="0,3,0,0"
-                                       Foreground="#B5BAC7"
-                                       FontSize="12"/>
-
-                            <TextBlock x:Name="PlayerInfoTextBlock"
-                                       Text="Профиль загружается..."
-                                       Margin="0,3,0,0"
-                                       Foreground="#8A78FF"
-                                       FontSize="12"/>
-
+                                       FontSize="36"
+                                       FontWeight="Bold"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock x:Name="NewsSummaryText"
+                                       Text="Здесь будут появляться новости, обновления и интересные события Minecraft."
+                                       Margin="0,12,0,0"
+                                       Foreground="#D6D9E2"
+                                       FontSize="16"
+                                       TextWrapping="Wrap"/>
                         </StackPanel>
 
-                    </StackPanel>
+                        <Button Content="‹"
+                                Margin="20,0,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource CarouselButtonStyle}"
+                                Click="PreviousNewsButton_Click"/>
+                        <Button Content="›"
+                                Margin="0,0,20,0"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource CarouselButtonStyle}"
+                                Click="NextNewsButton_Click"/>
 
-                    <!-- Состояние запуска -->
-                    <StackPanel Margin="0,20,0,0">
+                        <StackPanel x:Name="NewsDotsPanel"
+                                    Margin="0,0,0,18"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Bottom"/>
+                    </Grid>
+                </Border>
 
-                        <Grid Width="460"
-                              HorizontalAlignment="Left">
-
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock x:Name="GameStatusTextBlock"
-                                       Grid.Column="0"
-                                       Text="Проверка состояния сборки..."
-                                       Foreground="#D8DAE1"
-                                       FontSize="13"
-                                       TextWrapping="Wrap"/>
-
-                            <TextBlock x:Name="GameProgressTextBlock"
-                                       Grid.Column="1"
-                                       Margin="14,0,0,0"
-                                       Text="0%"
-                                       Foreground="#A494FF"
-                                       FontSize="13"
+                <Grid Margin="0,22,0,28">
+                    <Border
+                            Padding="26"
+                            Background="#A8151922"
+                            BorderBrush="#282D39"
+                            BorderThickness="1"
+                            CornerRadius="16">
+                        <StackPanel>
+                            <TextBlock x:Name="NewsDetailsTitleText"
+                                       Text="Подробнее"
+                                       Foreground="White"
+                                       FontSize="21"
                                        FontWeight="SemiBold"/>
-
-                        </Grid>
-
-                        <ProgressBar x:Name="GameProgressBar"
-                                     Width="460"
-                                     Height="7"
-                                     Margin="0,9,0,0"
-                                     HorizontalAlignment="Left"
-                                     Minimum="0"
-                                     Maximum="100"
-                                     Value="0"
-                                     IsIndeterminate="False"/>
-
-                    </StackPanel>
-
-                </StackPanel>
-
-                <!-- Подпись справа снизу -->
-                <StackPanel HorizontalAlignment="Right"
-                            VerticalAlignment="Bottom"
-                            Margin="0,0,30,28">
-
-                    <TextBlock Text="STORY WORLD"
-                               HorizontalAlignment="Right"
-                               Foreground="White"
-                               FontSize="16"
-                               FontWeight="Bold"/>
-
-                    <TextBlock Text="Мир магии и приключений"
-                               Margin="0,4,0,0"
-                               Foreground="#D4D6DD"
-                               FontSize="12"/>
-
-                </StackPanel>
-
-            </Grid>
-
-        </Border>
-
-        <!-- Нижняя часть -->
-        <Grid Grid.Row="1"
-              Margin="0,22,0,0">
-
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*"/>
-                <ColumnDefinition Width="18"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <!-- Новости -->
-            <Border Grid.Column="0"
-                    CornerRadius="16"
-                    Background="#151922"
-                    BorderBrush="#282D39"
-                    BorderThickness="1">
-
-                <StackPanel Margin="22">
-
-                    <TextBlock Text="Последние новости"
-                               Foreground="White"
-                               FontSize="18"
-                               FontWeight="SemiBold"/>
-
-                    <TextBlock Text="Автоматические обновления подключены"
-                               Margin="0,18,0,0"
-                               Foreground="#C4C8D2"
-                               FontSize="14"/>
-
-                    <TextBlock Text="Minecraft и Fabric уже устанавливаются через лаунчер. Теперь подключается полноценный запуск сборки."
-                               Margin="0,7,0,0"
-                               Foreground="#737987"
-                               FontSize="12"
-                               TextWrapping="Wrap"/>
-
-                </StackPanel>
-
-            </Border>
-
-            <!-- Статус сборки -->
-            <Border Grid.Column="2"
-                    CornerRadius="16"
-                    Background="#151922"
-                    BorderBrush="#282D39"
-                    BorderThickness="1">
-
-                <StackPanel Margin="22">
-
-                    <TextBlock Text="Статус сборки"
-                               Foreground="White"
-                               FontSize="18"
-                               FontWeight="SemiBold"/>
-
-                    <TextBlock x:Name="ModpackStateTextBlock"
-                               Text="Проверка..."
-                               Margin="0,18,0,0"
-                               Foreground="#8A78FF"
-                               FontSize="14"
-                               FontWeight="SemiBold"/>
-
-                    <TextBlock x:Name="ModpackDetailsTextBlock"
-                               Text="Minecraft 1.21.1 • Fabric 0.19.3"
-                               Margin="0,7,0,0"
-                               Foreground="#737987"
-                               FontSize="12"
-                               TextWrapping="Wrap"/>
-
-                </StackPanel>
-
-            </Border>
-
-        </Grid>
-
+                            <TextBlock x:Name="NewsDetailsText"
+                                       Margin="0,16,0,0"
+                                       Foreground="#AEB4C2"
+                                       FontSize="14"
+                                       LineHeight="23"
+                                       TextWrapping="Wrap"/>
+                            <Button x:Name="OfficialNewsButton"
+                                    Content="MINECRAFT OFFICIAL"
+                                    Width="270"
+                                    Height="44"
+                                    Margin="0,22,0,0"
+                                    HorizontalAlignment="Left"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Click="OfficialNewsButton_Click"/>
+                            <TextBlock Text="StoryLauncher — неофициальный проект. Не одобрен и не связан с Mojang или Microsoft."
+                                       Margin="0,16,0,0"
+                                       Foreground="#656C7C"
+                                       FontSize="11"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
-
 </Page>

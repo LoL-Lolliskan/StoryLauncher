@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -13,6 +13,8 @@ namespace StoryLauncher.Services
         public required string Username { get; init; }
 
         public required string Uuid { get; init; }
+
+        public required string SourceName { get; init; }
 
         public required BitmapImage Avatar { get; init; }
 
@@ -29,7 +31,7 @@ namespace StoryLauncher.Services
         static MinecraftSkinService()
         {
             HttpClient.DefaultRequestHeaders.UserAgent.ParseAdd(
-                "StoryLauncher/0.1");
+                "StoryLauncher/0.1.3");
         }
 
         public static async Task<MinecraftPlayerSkin?> GetPlayerSkinAsync(
@@ -42,54 +44,106 @@ namespace StoryLauncher.Services
 
             nickname = nickname.Trim();
 
-            string profileUrl =
-                $"https://api.mojang.com/users/profiles/minecraft/" +
-                Uri.EscapeDataString(nickname);
+            MojangProfileResponse? officialProfile =
+                await TryGetOfficialProfileAsync(nickname);
 
-            using HttpResponseMessage profileResponse =
-                await HttpClient.GetAsync(profileUrl);
-
-            if (profileResponse.StatusCode == HttpStatusCode.NoContent ||
-                profileResponse.StatusCode == HttpStatusCode.NotFound)
+            if (officialProfile != null &&
+                !string.IsNullOrWhiteSpace(officialProfile.Id))
             {
-                return null;
+                MinecraftPlayerSkin? officialSkin =
+                    await TryDownloadRenderedSkinAsync(
+                        officialProfile.Name ?? nickname,
+                        officialProfile.Id,
+                        officialProfile.Id,
+                        "Официальный Minecraft Java-скин");
+
+                if (officialSkin != null)
+                {
+                    return officialSkin;
+                }
             }
 
-            profileResponse.EnsureSuccessStatusCode();
+            // Если официальный профиль не найден, пробуем веб-рендер
+            // непосредственно по введённому нику.
+            return await TryDownloadRenderedSkinAsync(
+                nickname,
+                nickname,
+                string.Empty,
+                "Веб-скин MCHeads по нику");
+        }
 
-            MojangProfileResponse? profile =
-                await profileResponse.Content
+        private static async Task<MojangProfileResponse?>
+            TryGetOfficialProfileAsync(string nickname)
+        {
+            try
+            {
+                string profileUrl =
+                    "https://api.mojang.com/users/profiles/minecraft/" +
+                    Uri.EscapeDataString(nickname);
+
+                using HttpResponseMessage response =
+                    await HttpClient.GetAsync(profileUrl);
+
+                if (response.StatusCode == HttpStatusCode.NoContent ||
+                    response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return null;
+                }
+
+                return await response.Content
                     .ReadFromJsonAsync<MojangProfileResponse>();
-
-            if (profile == null ||
-                string.IsNullOrWhiteSpace(profile.Id))
+            }
+            catch
             {
                 return null;
             }
+        }
 
-            string uuid = profile.Id;
-
-            string avatarUrl =
-                $"https://crafatar.com/avatars/{uuid}" +
-                "?size=128&overlay&default=MHF_Steve";
-
-            string bodyUrl =
-                $"https://crafatar.com/renders/body/{uuid}" +
-                "?scale=8&overlay&default=MHF_Steve";
-
-            BitmapImage avatar =
-                await DownloadImageAsync(avatarUrl);
-
-            BitmapImage body =
-                await DownloadImageAsync(bodyUrl);
-
-            return new MinecraftPlayerSkin
+        private static async Task<MinecraftPlayerSkin?>
+            TryDownloadRenderedSkinAsync(
+                string username,
+                string identifier,
+                string uuid,
+                string sourceName)
+        {
+            try
             {
-                Username = profile.Name ?? nickname,
-                Uuid = uuid,
-                Avatar = avatar,
-                BodyRender = body
-            };
+                string safeIdentifier =
+                    Uri.EscapeDataString(identifier);
+
+                string avatarUrl =
+                    $"https://mc-heads.net/avatar/{safeIdentifier}/128.png";
+
+                // Изометрический 3D-рендер полного тела, повёрнутый вправо.
+                string bodyUrl =
+                    $"https://mc-heads.net/body/{safeIdentifier}/right";
+
+                Task<BitmapImage> avatarTask =
+                    DownloadImageAsync(avatarUrl);
+
+                Task<BitmapImage> bodyTask =
+                    DownloadImageAsync(bodyUrl);
+
+                await Task.WhenAll(avatarTask, bodyTask);
+
+                return new MinecraftPlayerSkin
+                {
+                    Username = username,
+                    Uuid = uuid,
+                    SourceName = sourceName,
+                    Avatar = await avatarTask,
+                    BodyRender = await bodyTask
+                };
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private static async Task<BitmapImage> DownloadImageAsync(

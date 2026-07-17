@@ -9,9 +9,21 @@ namespace StoryLauncher.Services
         // Музыка
         public double MusicVolume { get; set; } = 0.35;
         public bool MusicEnabled { get; set; } = true;
+        public string SelectedMusicTrack { get; set; } =
+            "MenuMusic";
 
         // Профиль
         public string Nickname { get; set; } = "Player";
+
+        // Своя аватарка профиля. Если false, используется голова скина.
+        public bool UseCustomAvatar { get; set; }
+
+        public string CustomAvatarPath { get; set; } = string.Empty;
+
+        // Свой PNG-скин используется для предпросмотра локального профиля.
+        public bool UseCustomSkin { get; set; }
+
+        public string CustomSkinPath { get; set; } = string.Empty;
 
         // Minecraft
         public int AllocatedRamMb { get; set; } = 6144;
@@ -19,6 +31,13 @@ namespace StoryLauncher.Services
         // Java
         public string JavaPath { get; set; } =
             @"C:\Program Files\Eclipse Adoptium\jdk-21";
+
+        // Оформление лаунчера
+        public string LauncherTheme { get; set; } =
+            "StoryPurple";
+
+        // Видео-аватарка в левом верхнем углу.
+        public bool AnimationsEnabled { get; set; } = true;
     }
 
     public static class SettingsService

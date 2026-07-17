@@ -12,98 +12,9 @@
         MinWidth="1100"
         MinHeight="650"
         WindowStartupLocation="CenterScreen"
-        Background="#0D0F14">
+        Background="{DynamicResource LauncherBackgroundBrush}">
 
     <Window.Resources>
-
-        <!-- Стиль обычной кнопки навигации -->
-        <Style x:Key="NavigationButtonStyle"
-               TargetType="Button">
-
-            <Setter Property="Height"
-                    Value="48"/>
-
-            <Setter Property="Margin"
-                    Value="0,4,0,4"/>
-
-            <Setter Property="Padding"
-                    Value="16,0"/>
-
-            <Setter Property="HorizontalContentAlignment"
-                    Value="Left"/>
-
-            <Setter Property="VerticalContentAlignment"
-                    Value="Center"/>
-
-            <Setter Property="Foreground"
-                    Value="#9DA3B2"/>
-
-            <Setter Property="Background"
-                    Value="Transparent"/>
-
-            <Setter Property="BorderThickness"
-                    Value="0"/>
-
-            <Setter Property="Cursor"
-                    Value="Hand"/>
-
-            <Setter Property="FontSize"
-                    Value="14"/>
-
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-
-                        <Border x:Name="ButtonBorder"
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="10">
-
-                            <ContentPresenter Margin="{TemplateBinding Padding}"
-                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                        </Border>
-
-                        <ControlTemplate.Triggers>
-
-                            <Trigger Property="IsMouseOver"
-                                     Value="True">
-
-                                <Setter TargetName="ButtonBorder"
-                                        Property="Background"
-                                        Value="#1C202A"/>
-
-                                <Setter Property="Foreground"
-                                        Value="White"/>
-                            </Trigger>
-
-                            <Trigger Property="IsPressed"
-                                     Value="True">
-
-                                <Setter TargetName="ButtonBorder"
-                                        Property="Background"
-                                        Value="#252A37"/>
-                            </Trigger>
-
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- Стиль выбранной кнопки навигации -->
-        <Style x:Key="SelectedNavigationButtonStyle"
-               TargetType="Button"
-               BasedOn="{StaticResource NavigationButtonStyle}">
-
-            <Setter Property="Foreground"
-                    Value="White"/>
-
-            <Setter Property="Background"
-                    Value="#292343"/>
-
-            <Setter Property="FontWeight"
-                    Value="SemiBold"/>
-        </Style>
 
         <!-- Стиль кнопки музыки -->
         <Style x:Key="TopIconButtonStyle"
@@ -199,7 +110,7 @@
 
                                                     <!-- Заполненная часть ползунка -->
                                                     <Border Height="4"
-                                                            Background="#8B5CF6"
+                                                            Background="{DynamicResource PrimaryBrush}"
                                                             CornerRadius="2"/>
                                                 </ControlTemplate>
                                             </RepeatButton.Template>
@@ -221,7 +132,7 @@
 
                                                         <Ellipse Width="7"
                                                                  Height="7"
-                                                                 Fill="#8B5CF6"/>
+                                                                 Fill="{DynamicResource PrimaryBrush}"/>
                                                     </Grid>
 
                                                     <ControlTemplate.Triggers>
@@ -268,7 +179,7 @@
 
     </Window.Resources>
 
-    <Grid>
+    <Grid Background="#5C0D0F14">
 
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="220"/>
@@ -277,7 +188,7 @@
 
         <!-- Левое меню -->
         <Border Grid.Column="0"
-                Background="#11141B"
+                Background="#B811141B"
                 BorderBrush="#252A35"
                 BorderThickness="0,0,1,0">
 
@@ -289,18 +200,58 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Логотип -->
+                <!-- Зацикленная видео-аватарка -->
                 <StackPanel HorizontalAlignment="Center">
 
-                    <Image Source="/StoryLauncher;component/Assets/Logo/StoryLauncherLogo.png"
-                           Width="150"
-                           Height="150"
-                           Stretch="Uniform"
-                           HorizontalAlignment="Center"/>
+                    <Grid Width="150"
+                          Height="150"
+                          HorizontalAlignment="Center">
+
+                        <!-- Запасная картинка, если MP4 отсутствует или не поддерживается. -->
+                        <Ellipse x:Name="SidebarAvatarFallback"
+                                 Width="144"
+                                 Height="144">
+                            <Ellipse.Fill>
+                                <ImageBrush ImageSource="/StoryLauncher;component/Assets/Images/SidebarAvatar.jpg"
+                                            Stretch="UniformToFill"
+                                            AlignmentX="Center"
+                                            AlignmentY="Center"/>
+                            </Ellipse.Fill>
+                        </Ellipse>
+
+                        <MediaElement x:Name="SidebarAvatarVideo"
+                                      Width="144"
+                                      Height="144"
+                                      LoadedBehavior="Manual"
+                                      UnloadedBehavior="Manual"
+                                      Stretch="UniformToFill"
+                                      IsMuted="True"
+                                      ScrubbingEnabled="True"
+                                      SpeedRatio="0.8"
+                                      Opacity="0"
+                                      MediaOpened="SidebarAvatarVideo_MediaOpened"
+                                      MediaEnded="SidebarAvatarVideo_MediaEnded"
+                                      MediaFailed="SidebarAvatarVideo_MediaFailed">
+                            <MediaElement.Clip>
+                                <EllipseGeometry Center="72,72"
+                                                 RadiusX="72"
+                                                 RadiusY="72"/>
+                            </MediaElement.Clip>
+                        </MediaElement>
+
+                        <!-- Рамка остаётся поверх видео и меняет цвет вместе с темой. -->
+                        <Ellipse Width="150"
+                                 Height="150"
+                                 Stroke="{DynamicResource PrimaryBrush}"
+                                 StrokeThickness="3"
+                                 Fill="Transparent"
+                                 IsHitTestVisible="False"/>
+                    </Grid>
 
                     <TextBlock Text="STORY LAUNCHER"
                                Margin="0,8,0,0"
@@ -310,7 +261,7 @@
                                HorizontalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Главная -->
+                <!-- Новости -->
                 <Button x:Name="HomeButton"
                         Grid.Row="2"
                         Style="{StaticResource SelectedNavigationButtonStyle}"
@@ -324,7 +275,7 @@
                                    Margin="0,0,14,0"
                                    VerticalAlignment="Center"/>
 
-                        <TextBlock Text="Главная"
+                        <TextBlock Text="Новости"
                                    VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
@@ -348,9 +299,28 @@
                     </StackPanel>
                 </Button>
 
+                <!-- Персонализация лаунчера -->
+                <Button x:Name="CustomLauncherButton"
+                        Grid.Row="4"
+                        Style="{StaticResource NavigationButtonStyle}"
+                        Click="CustomLauncherButton_Click">
+
+                    <StackPanel Orientation="Horizontal">
+
+                        <TextBlock Text="&#xE790;"
+                                   FontFamily="Segoe MDL2 Assets"
+                                   FontSize="18"
+                                   Margin="0,0,14,0"
+                                   VerticalAlignment="Center"/>
+
+                        <TextBlock Text="Custom Launcher"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
                 <!-- Настройки -->
                 <Button x:Name="SettingsButton"
-                        Grid.Row="4"
+                        Grid.Row="5"
                         Style="{StaticResource NavigationButtonStyle}"
                         Click="SettingsButton_Click">
 
@@ -367,10 +337,96 @@
                     </StackPanel>
                 </Button>
 
+                <!-- Discord-сообщество -->
+                <Button Grid.Row="6"
+                        Height="46"
+                        Margin="0,0,0,112"
+                        VerticalAlignment="Bottom"
+                        Style="{StaticResource NavigationButtonStyle}"
+                        ToolTip="Открыть Discord StoryLauncher"
+                        Click="DiscordButton_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE8BD;"
+                                   FontFamily="Segoe MDL2 Assets"
+                                   FontSize="19"
+                                   Margin="0,0,14,0"
+                                   Foreground="#8A9CFF"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="Discord"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Музыка и громкость внизу бокового меню -->
+                <Border Grid.Row="6"
+                        Margin="0,0,0,16"
+                        Padding="10"
+                        VerticalAlignment="Bottom"
+                        Background="#A8171B24"
+                        BorderBrush="#4D3B4150"
+                        BorderThickness="1"
+                        CornerRadius="12">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button x:Name="MusicButton"
+                                    Width="32"
+                                    Height="32"
+                                    Style="{StaticResource TopIconButtonStyle}"
+                                    ToolTip="Включить или выключить музыку"
+                                    Click="MusicButton_Click">
+                                <TextBlock x:Name="MusicIcon"
+                                           Text="&#xE767;"
+                                           FontFamily="Segoe MDL2 Assets"
+                                           FontSize="17"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Button>
+
+                            <TextBlock Grid.Column="1"
+                                       Text="Музыка"
+                                       Margin="7,0,0,0"
+                                       Foreground="White"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center"/>
+
+                            <TextBlock x:Name="VolumeText"
+                                       Grid.Column="2"
+                                       Text="35%"
+                                       Foreground="{DynamicResource AccentTextBrush}"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <Slider x:Name="VolumeSlider"
+                                Margin="3,6,3,0"
+                                Minimum="0"
+                                Maximum="100"
+                                Value="35"
+                                SmallChange="1"
+                                LargeChange="5"
+                                IsMoveToPointEnabled="True"
+                                Style="{StaticResource VolumeSliderStyle}"
+                                ValueChanged="VolumeSlider_ValueChanged"
+                                ToolTip="Громкость музыки"/>
+                    </StackPanel>
+                </Border>
+
                 <TextBlock x:Name="LauncherVersionText"
-                             Text="Версия лаунчера"
-                             Foreground="#697184"
-                             FontSize="12"/>
+                           Grid.Row="7"
+                           Text="Версия лаунчера"
+                           Margin="2,0,0,2"
+                           Foreground="#697184"
+                           FontSize="12"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Bottom"/>
             </Grid>
         </Border>
 
@@ -384,7 +440,7 @@
 
             <!-- Верхняя панель -->
             <Border Grid.Row="0"
-                    Background="#0F1218"
+                    Background="#B80F1218"
                     BorderBrush="#252A35"
                     BorderThickness="0,0,0,1">
 
@@ -397,7 +453,7 @@
 
                     <!-- Название страницы -->
                     <TextBlock x:Name="PageTitle"
-                               Text="Главная"
+                               Text="Новости"
                                VerticalAlignment="Center"
                                Foreground="White"
                                FontSize="22"
@@ -408,57 +464,6 @@
                                 Orientation="Horizontal"
                                 VerticalAlignment="Center">
 
-                        <!-- Музыка -->
-                        <Border Margin="0,0,24,0"
-                                Padding="7,5"
-                                Background="#171B24"
-                                BorderBrush="#272C38"
-                                BorderThickness="1"
-                                CornerRadius="12">
-
-                            <StackPanel Orientation="Horizontal"
-                                        VerticalAlignment="Center">
-
-                                <!-- Включение и выключение музыки -->
-                                <Button x:Name="MusicButton"
-                                        Style="{StaticResource TopIconButtonStyle}"
-                                        ToolTip="Включить или выключить музыку"
-                                        Click="MusicButton_Click">
-
-                                    <TextBlock x:Name="MusicIcon"
-                                               Text="&#xE767;"
-                                               FontFamily="Segoe MDL2 Assets"
-                                               FontSize="18"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"/>
-                                </Button>
-
-                                <!-- Ползунок громкости -->
-                                <Slider x:Name="VolumeSlider"
-                                        Width="115"
-                                        Margin="8,0,8,0"
-                                        Minimum="0"
-                                        Maximum="100"
-                                        Value="35"
-                                        SmallChange="1"
-                                        LargeChange="5"
-                                        IsMoveToPointEnabled="True"
-                                        Style="{StaticResource VolumeSliderStyle}"
-                                        ValueChanged="VolumeSlider_ValueChanged"
-                                        ToolTip="Громкость музыки"/>
-
-                                <!-- Процент громкости -->
-                                <TextBlock x:Name="VolumeText"
-                                           Width="42"
-                                           Text="35%"
-                                           Foreground="#C8CCD6"
-                                           FontSize="13"
-                                           FontWeight="SemiBold"
-                                           TextAlignment="Center"
-                                           VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
-
                         <!-- Кнопка профиля -->
                         <Button x:Name="ProfileButton"
                                 Background="Transparent"
@@ -467,41 +472,58 @@
                                 Cursor="Hand"
                                 Click="ProfileButton_Click">
 
-                            <StackPanel Orientation="Horizontal">
+                            <Border Padding="18,10"
+                                    Background="#B8171B24"
+                                    BorderBrush="#272C38"
+                                    BorderThickness="1"
+                                    CornerRadius="12">
+                                <StackPanel Orientation="Horizontal">
+                                    <Grid Width="34"
+                                          Height="34">
+                                        <Ellipse Width="30"
+                                                 Height="30"
+                                                 Fill="#55242936"/>
 
-                                <!-- Аватар -->
-                                <Border Width="40"
-                                        Height="40"
-                                        CornerRadius="20"
-                                        Background="#292343">
+                                        <TextBlock x:Name="ProfileFallbackIcon"
+                                                   Text="&#xE77B;"
+                                                   FontFamily="Segoe MDL2 Assets"
+                                                   FontSize="16"
+                                                   Foreground="{DynamicResource AccentTextBrush}"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
 
-                                    <TextBlock x:Name="ProfileAvatarText"
-                                               Text="S"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               Foreground="White"
-                                               FontSize="16"
-                                               FontWeight="Bold"/>
-                                </Border>
+                                        <Image x:Name="ProfileAvatarImage"
+                                               Width="30"
+                                               Height="30"
+                                               Stretch="UniformToFill"
+                                               RenderOptions.BitmapScalingMode="HighQuality"
+                                               Visibility="Collapsed">
+                                            <Image.Clip>
+                                                <EllipseGeometry Center="15,15"
+                                                                 RadiusX="15"
+                                                                 RadiusY="15"/>
+                                            </Image.Clip>
+                                        </Image>
 
-                                <!-- Информация профиля -->
-                                <StackPanel Margin="12,0,0,0"
-                                            VerticalAlignment="Center">
-
-                                    <TextBlock x:Name="ProfileNameText"
-                                               Text="Игрок"
+                                        <!-- Рамка всегда находится поверх изображения. -->
+                                        <Ellipse Width="33"
+                                                 Height="33"
+                                                 Stroke="{DynamicResource PrimaryBrush}"
+                                                 StrokeThickness="2"
+                                                 Fill="Transparent"
+                                                 IsHitTestVisible="False"/>
+                                    </Grid>
+                                    <TextBlock Text="Профиль"
+                                               Margin="10,0,0,0"
                                                Foreground="White"
                                                FontSize="14"
                                                FontWeight="SemiBold"
-                                               HorizontalAlignment="Left"/>
-
-                                    <TextBlock x:Name="ProfileStatusText"
-                                               Text="Не авторизован"
-                                               Foreground="#777D8B"
-                                               FontSize="11"
-                                               HorizontalAlignment="Left"/>
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="ProfileNameText" Visibility="Collapsed"/>
+                                    <TextBlock x:Name="ProfileStatusText" Visibility="Collapsed"/>
+                                    <TextBlock x:Name="ProfileAvatarText" Visibility="Collapsed"/>
                                 </StackPanel>
-                            </StackPanel>
+                            </Border>
                         </Button>
                     </StackPanel>
                 </Grid>

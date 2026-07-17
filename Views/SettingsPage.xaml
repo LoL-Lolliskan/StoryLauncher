@@ -9,6 +9,118 @@
       Opacity="0"
       Loaded="Page_Loaded">
 
+    <Page.Resources>
+        <Style x:Key="SettingsSliderStyle" TargetType="Slider">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid Height="30" VerticalAlignment="Center">
+                            <Border Height="6"
+                                    VerticalAlignment="Center"
+                                    Background="#663A4050"
+                                    CornerRadius="3"/>
+
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static Slider.DecreaseLarge}"
+                                                  IsHitTestVisible="False">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Height="6"
+                                                        Background="{DynamicResource PrimaryBrush}"
+                                                        CornerRadius="3"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+
+                                <Track.Thumb>
+                                    <Thumb Width="18" Height="18">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Grid>
+                                                    <Ellipse Fill="White"/>
+                                                    <Ellipse Width="9"
+                                                             Height="9"
+                                                             Fill="{DynamicResource PrimaryBrush}"/>
+                                                </Grid>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static Slider.IncreaseLarge}"
+                                                  IsHitTestVisible="False">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Background="Transparent"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ThemeCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border x:Name="CheckBoxBorder"
+                                    Width="21"
+                                    Height="21"
+                                    Background="#99131620"
+                                    BorderBrush="{DynamicResource PrimaryBrush}"
+                                    BorderThickness="2"
+                                    CornerRadius="5">
+                                <TextBlock x:Name="CheckMark"
+                                           Text="✓"
+                                           Foreground="White"
+                                           FontSize="14"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Visibility="Collapsed"/>
+                            </Border>
+
+                            <ContentPresenter Grid.Column="1"
+                                              Margin="10,0,0,0"
+                                              VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckBoxBorder"
+                                        Property="Background"
+                                        Value="{DynamicResource PrimaryBrush}"/>
+                                <Setter TargetName="CheckMark"
+                                        Property="Visibility"
+                                        Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="CheckBoxBorder"
+                                        Property="BorderBrush"
+                                        Value="{DynamicResource PrimaryHoverBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
+
     <Grid x:Name="RootGrid"
           Margin="28"
           RenderTransformOrigin="0.5,0.5">
@@ -18,7 +130,7 @@
         </Grid.RenderTransform>
 
         <Border CornerRadius="20"
-                Background="#191D27"
+                Background="#A8191D27"
                 BorderBrush="#2B3040"
                 BorderThickness="1">
 
@@ -38,7 +150,7 @@
 
                     <Border Margin="0,28,0,0"
                             Padding="22"
-                            Background="#131620"
+                            Background="#96131620"
                             BorderBrush="#2B3040"
                             BorderThickness="1"
                             CornerRadius="14">
@@ -53,7 +165,7 @@
                                            FontWeight="SemiBold"/>
 
                                 <Border DockPanel.Dock="Right"
-                                        Background="#7C5CFF"
+                                        Background="{DynamicResource PrimaryBrush}"
                                         CornerRadius="10"
                                         Padding="12,4">
 
@@ -82,6 +194,7 @@
                                     SmallChange="0.5"
                                     LargeChange="1"
                                     IsSnapToTickEnabled="True"
+                                    Style="{StaticResource SettingsSliderStyle}"
                                     ValueChanged="RamSlider_ValueChanged"/>
 
                             <Grid Margin="0,8,0,0">
@@ -112,7 +225,7 @@
 
                     <Border Margin="0,22,0,0"
                             Padding="22"
-                            Background="#131620"
+                            Background="#96131620"
                             BorderBrush="#2B3040"
                             BorderThickness="1"
                             CornerRadius="14">
@@ -129,7 +242,7 @@
                                      Height="40"
                                      Text="C:\Program Files\Eclipse Adoptium\jdk-21"
                                      Padding="10"
-                                     Background="#191D27"
+                                     Background="#99191D27"
                                      Foreground="White"
                                      BorderBrush="#383F55"/>
 
@@ -141,7 +254,7 @@
 
                     <Border Margin="0,22,0,0"
                             Padding="22"
-                            Background="#131620"
+                            Background="#96131620"
                             BorderBrush="#2B3040"
                             BorderThickness="1"
                             CornerRadius="14">
@@ -150,7 +263,7 @@
                                   Content="Включить музыку в лаунчере"
                                   FontSize="16"
                                   Foreground="White"
-                                  IsChecked="True"
+                                  Style="{StaticResource ThemeCheckBoxStyle}"
                                   Checked="MusicCheckBox_Checked"
                                   Unchecked="MusicCheckBox_Unchecked"/>
 

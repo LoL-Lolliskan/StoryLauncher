@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -8,6 +9,15 @@ using System.Threading.Tasks;
 
 namespace StoryLauncher.Services
 {
+    public sealed class ModpackCheckProgress
+    {
+        public int CurrentFile { get; init; }
+        public int TotalFiles { get; init; }
+        public int Percent { get; init; }
+        public string FileName { get; init; } = string.Empty;
+        public TimeSpan? EstimatedRemaining { get; init; }
+    }
+
     public sealed class ModpackVersionInfo
     {
         public string Version { get; set; } =
@@ -212,6 +222,7 @@ namespace StoryLauncher.Services
             CreateUpdatePlanAsync(
                 ModpackReleaseManifest manifest,
                 string gameDirectory,
+                IProgress<ModpackCheckProgress>? progress = null,
                 CancellationToken cancellationToken = default)
         {
             if (manifest == null)
@@ -245,11 +256,46 @@ namespace StoryLauncher.Services
                         manifest.Version
                 };
 
-            foreach (ModpackReleaseFile file
-                     in manifest.Files)
+            int totalFiles = manifest.Files.Count;
+            var checkStopwatch = Stopwatch.StartNew();
+
+            for (int fileIndex = 0;
+                 fileIndex < totalFiles;
+                 fileIndex++)
             {
+                ModpackReleaseFile file =
+                    manifest.Files[fileIndex];
+
                 cancellationToken
                     .ThrowIfCancellationRequested();
+
+                TimeSpan? estimatedRemaining = null;
+
+                if (fileIndex > 0)
+                {
+                    double averageSeconds =
+                        checkStopwatch.Elapsed.TotalSeconds /
+                        fileIndex;
+
+                    estimatedRemaining = TimeSpan.FromSeconds(
+                        averageSeconds *
+                        (totalFiles - fileIndex));
+                }
+
+                progress?.Report(
+                    new ModpackCheckProgress
+                    {
+                        CurrentFile = fileIndex + 1,
+                        TotalFiles = totalFiles,
+                        Percent = totalFiles > 0
+                            ? (int)Math.Clamp(
+                                fileIndex * 100.0 / totalFiles,
+                                0,
+                                99)
+                            : 0,
+                        FileName = file?.AssetName ?? string.Empty,
+                        EstimatedRemaining = estimatedRemaining
+                    });
 
                 if (file == null ||
                     string.IsNullOrWhiteSpace(
@@ -299,6 +345,20 @@ namespace StoryLauncher.Services
                         fullGameDirectory,
                         file.InstallPath);
 
+                /*
+                 * Пользовательские файлы с режимом copyIfMissing
+                 * устанавливаются один раз и затем не сравниваются
+                 * по хешу. Так настройки игрока не скачиваются заново.
+                 */
+                if (string.Equals(
+                        file.InstallMode,
+                        "copyIfMissing",
+                        StringComparison.OrdinalIgnoreCase) &&
+                    File.Exists(destinationPath))
+                {
+                    continue;
+                }
+
                 if (!File.Exists(destinationPath))
                 {
                     plan.FilesToDownload.Add(
@@ -334,6 +394,16 @@ namespace StoryLauncher.Services
                         });
                 }
             }
+
+            progress?.Report(
+                new ModpackCheckProgress
+                {
+                    CurrentFile = totalFiles,
+                    TotalFiles = totalFiles,
+                    Percent = 100,
+                    FileName = "Проверка завершена",
+                    EstimatedRemaining = TimeSpan.Zero
+                });
 
             return plan;
         }

@@ -1,13 +1,59 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows.Media;
 
 namespace StoryLauncher.Services
 {
+    public sealed record MusicTrackDefinition(
+        string Id,
+        string DisplayName,
+        string Subtitle,
+        string FileName);
+
     public static class MusicService
     {
         private static readonly MediaPlayer Player = new();
+
+        private static readonly List<MusicTrackDefinition>
+            TracksInternal = new()
+            {
+                new(
+                    "MenuMusic",
+                    "Story Menu",
+                    "Основная музыка лаунчера",
+                    "MenuMusic.mp3"),
+                new(
+                    "GoldenBrown",
+                    "Golden Brown × Love Story",
+                    "Атмосферная версия",
+                    "Neizvesten_-_Golden_Brown_x_Love_Story_(SkySound.cc).mp3"),
+                new(
+                    "HideSlowed",
+                    "Hide — slowed",
+                    "CS01 Version",
+                    "-_Hide_CS01_Version_slowed_(SkySound.cc).mp3"),
+                new(
+                    "PlayDate",
+                    "Play Date",
+                    "Melanie",
+                    "Melanie_-_Play_date_(SkySound.cc).mp3")
+            };
+
         private static bool _isInitialized;
+        private static MusicTrackDefinition? _currentTrack;
+
+        public static event Action? TrackChanged;
+
+        public static IReadOnlyList<MusicTrackDefinition> Tracks =>
+            TracksInternal;
+
+        public static string CurrentTrackId =>
+            _currentTrack?.Id ?? "MenuMusic";
+
+        public static string CurrentTrackName =>
+            _currentTrack?.DisplayName ?? "Story Menu";
 
         public static bool IsEnabled { get; private set; }
 
@@ -20,43 +66,120 @@ namespace StoryLauncher.Services
                 return;
             }
 
-            SettingsService.Load();
-
-            IsEnabled = SettingsService.Current.MusicEnabled;
+            IsEnabled =
+                SettingsService.Current.MusicEnabled;
 
             Volume = Math.Clamp(
                 SettingsService.Current.MusicVolume,
                 0.0,
                 1.0);
 
+            Player.Volume = Volume;
+
+            Player.MediaEnded += (_, _) =>
+            {
+                if (IsEnabled)
+                {
+                    PlayNextTrack();
+                }
+            };
+
+            _isInitialized = true;
+
+            string savedTrackId =
+                SettingsService.Current.SelectedMusicTrack;
+
+            if (!SelectTrack(savedTrackId))
+            {
+                SelectTrack("MenuMusic");
+            }
+        }
+
+        public static bool SelectTrack(
+            string? trackId)
+        {
+            if (!_isInitialized)
+            {
+                Initialize();
+            }
+
+            MusicTrackDefinition track =
+                TracksInternal.FirstOrDefault(
+                    item => string.Equals(
+                        item.Id,
+                        trackId,
+                        StringComparison.OrdinalIgnoreCase))
+                ?? TracksInternal[0];
+
             string musicPath = Path.Combine(
                 AppContext.BaseDirectory,
                 "Assets",
                 "Audio",
-                "MenuMusic.mp3");
+                track.FileName);
 
             if (!File.Exists(musicPath))
             {
-                return;
+                return false;
             }
+
+            Player.Stop();
+            Player.Close();
 
             Player.Open(new Uri(
                 musicPath,
                 UriKind.Absolute));
 
             Player.Volume = Volume;
+            _currentTrack = track;
 
-            Player.MediaEnded += (_, _) =>
+            SettingsService.Current.SelectedMusicTrack =
+                track.Id;
+
+            SettingsService.Save();
+
+            if (IsEnabled)
             {
-                Player.Position = TimeSpan.Zero;
+                Player.Play();
+            }
 
-                if (IsEnabled)
+            TrackChanged?.Invoke();
+
+            return true;
+        }
+
+        public static void PlayNextTrack()
+        {
+            if (!_isInitialized ||
+                TracksInternal.Count == 0)
+            {
+                return;
+            }
+
+            int currentIndex =
+                _currentTrack == null
+                    ? -1
+                    : TracksInternal.FindIndex(
+                        item => string.Equals(
+                            item.Id,
+                            _currentTrack.Id,
+                            StringComparison.OrdinalIgnoreCase));
+
+            for (int offset = 1;
+                 offset <= TracksInternal.Count;
+                 offset++)
+            {
+                int nextIndex =
+                    (currentIndex + offset) %
+                    TracksInternal.Count;
+
+                if (SelectTrack(
+                        TracksInternal[nextIndex].Id))
                 {
-                    Player.Play();
+                    return;
                 }
-            };
+            }
 
-            _isInitialized = true;
+            Player.Position = TimeSpan.Zero;
 
             if (IsEnabled)
             {
@@ -81,11 +204,6 @@ namespace StoryLauncher.Services
             if (!_isInitialized)
             {
                 Initialize();
-            }
-
-            if (!_isInitialized)
-            {
-                return;
             }
 
             if (IsEnabled)
@@ -116,14 +234,12 @@ namespace StoryLauncher.Services
             }
         }
 
-        // ==========================
-        // НОВЫЕ МЕТОДЫ
-        // ==========================
-
         public static void Pause()
         {
             if (!_isInitialized)
+            {
                 return;
+            }
 
             Player.Pause();
         }
@@ -131,7 +247,9 @@ namespace StoryLauncher.Services
         public static void Resume()
         {
             if (!_isInitialized)
+            {
                 return;
+            }
 
             if (IsEnabled)
             {

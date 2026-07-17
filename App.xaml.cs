@@ -17,6 +17,10 @@ namespace StoryLauncher
         {
             SettingsService.Load();
 
+            ThemeService.Apply(
+                SettingsService.Current.LauncherTheme,
+                saveSettings: false);
+
             ModpackStateService.Load();
 
             ModpackInstallStateService.Load();
